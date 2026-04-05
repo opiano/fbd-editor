@@ -118,12 +118,10 @@
 
         <div class="prop-section" v-if="selectedNode.data.parameters && selectedNode.data.parameters.length > 0">
           <h4>파라미터 (Parameters)</h4>
-          <div v-for="(param, i) in selectedNode.data.parameters" :key="'param'+i" class="prop-row param-row">
-            <div class="param-info">
-              <span class="prop-name">{{ param.name }}</span>
-              <span class="prop-type">{{ param.dataType }}</span>
-            </div>
-            <input type="number" step="any" v-model="param.value" class="param-input" placeholder="값 입력..." />
+          <div v-for="(param, i) in selectedNode.data.parameters" :key="'param'+i" class="prop-row param-row-compact">
+            <span class="prop-name" style="width: 50px; text-align: left;">{{ param.name.replace('Parameter', 'Para') }}</span>
+            <input type="number" step="any" v-model="param.value" class="param-input-compact" placeholder="값..." />
+            <span class="prop-type" style="width: 40px; text-align: center;">{{ param.dataType }}</span>
           </div>
         </div>
       </div>
@@ -387,7 +385,7 @@ const addNode = (template) => {
   } else if (template.category === 'udfb' || template.category === 'block') {
     // UDFB나 새로 정의되지 않은 Block의 경우 기본 param 생성
     parameters = (template.inputs || []).map((_, idx) => ({
-      name: `Parameter${idx + 1}`,
+      name: `Para${idx + 1}`,
       dataType: "REAL",
       value: 1.0
     }))
@@ -850,9 +848,8 @@ const handleFileUpload = (event) => {
 .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; }
 .prop-name { color: #333; font-weight: bold; }
 .prop-type { color: #6c757d; background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
-.param-row { flex-direction: column; align-items: stretch; margin-bottom: 12px; border: 1px dashed #ddd; padding: 6px; border-radius: 6px; background: #fff; }
-.param-info { display: flex; justify-content: space-between; margin-bottom: 6px; }
-.param-input { width: 100%; border: 1px solid #ccc; padding: 5px 6px; border-radius: 4px; font-size: 11px; box-sizing: border-box; transition: border-color 0.2s; }
-.param-input:focus { outline: none; border-color: #007bff; }
+.param-row-compact { flex-direction: row; align-items: center; gap: 8px; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 6px; }
+.param-input-compact { flex: 1; min-width: 0; width: 100%; border: 1px solid #ccc; padding: 4px 6px; border-radius: 4px; font-size: 11px; box-sizing: border-box; text-align: center; transition: border-color 0.2s; }
+.param-input-compact:focus { outline: none; border-color: #007bff; }
 
 </style>
