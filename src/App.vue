@@ -1,5 +1,26 @@
 <template>
-  <div class="editor-container">
+  <div v-if="!isAuthenticated" class="login-container">
+    <div class="login-box">
+      <div class="login-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      </div>
+      <h2>FBD Editor</h2>
+      <p class="login-subtitle">접근 권한이 필요합니다.</p>
+      
+      <div class="input-group">
+        <input type="text" v-model="loginId" placeholder="아이디" @keyup.enter="handleLogin" autocomplete="username" />
+      </div>
+      <div class="input-group">
+        <input type="password" v-model="loginPw" placeholder="비밀번호" @keyup.enter="handleLogin" autocomplete="current-password" />
+      </div>
+      
+      <div v-if="loginError" class="login-error">{{ loginError }}</div>
+      
+      <button @click="handleLogin" class="login-btn">로그인</button>
+    </div>
+  </div>
+
+  <div v-else class="editor-container">
     <aside class="sidebar">
       <div class="var-toolbar-actions">
         <button class="icon-btn var-btn" title="Input 블록 추가" @click="addNode({ type: 'Input', category: 'input', inputs: [], outputs: ['OUT'] })">
@@ -140,6 +161,21 @@ const { toObject, onConnect, addEdges, onEdgeClick, onNodeClick, onPaneClick, on
 // 선택된 요소를 추적하여 삭제 키 이벤트에 대응
 const selectedElementId = ref(null)
 const copiedNode = ref(null) // 복사된 노드 저장용
+
+const isAuthenticated = ref(localStorage.getItem('fbd_auth') === 'true')
+const loginId = ref('')
+const loginPw = ref('')
+const loginError = ref('')
+
+const handleLogin = () => {
+  if (loginId.value === 'admin' && loginPw.value === '1234') {
+    isAuthenticated.value = true
+    localStorage.setItem('fbd_auth', 'true')
+    loginError.value = ''
+  } else {
+    loginError.value = '아이디 또는 비밀번호가 일치하지 않습니다.'
+  }
+}
 
 const isVerified = ref(false)
 
@@ -693,6 +729,20 @@ const handleFileUpload = (event) => {
 <style>
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
+
+/* 로그인 화면 스타일 */
+.login-container { display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; background: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); width: 100%; max-width: 360px; text-align: center; }
+.login-icon { background: #007bff; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; }
+.login-icon svg { width: 30px; height: 30px; }
+.login-box h2 { margin: 0 0 10px; color: #333; font-size: 24px; }
+.login-subtitle { color: #666; margin-bottom: 25px; font-size: 14px; }
+.input-group { margin-bottom: 15px; }
+.input-group input { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s; }
+.input-group input:focus { outline: none; border-color: #007bff; }
+.login-error { color: #dc3545; font-size: 13px; margin-bottom: 15px; text-align: left; }
+.login-btn { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+.login-btn:hover { background: #0056b3; }
 
 .editor-container { display: flex; height: 100vh; width: 100vw; font-family: sans-serif; }
 .sidebar { width: 230px; border-right: 1px solid #ccc; padding: 15px; background: #f9f9f9; overflow-y: auto; }
