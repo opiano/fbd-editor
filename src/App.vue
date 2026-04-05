@@ -849,7 +849,7 @@ const handleFileUpload = (event) => {
 .prop-name { color: #333; font-weight: bold; }
 .prop-type { color: #6c757d; background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
 .param-row-compact { flex-direction: row; align-items: center; gap: 8px; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 6px; }
-.param-input-compact { flex: 1; min-width: 0; width: 100%; border: 1px solid #ccc; padding: 4px 6px; border-radius: 4px; font-size: 11px; box-sizing: border-box; text-align: center; transition: border-color 0.2s; }
+.param-input-compact { flex: 1; min-width: 0; width: 100%; border: 1px solid #ccc; padding: 4px 6px; border-radius: 4px; font-size: 11px; box-sizing: border-box; text-align: right; transition: border-color 0.2s; }
 .param-input-compact:focus { outline: none; border-color: #007bff; }
 
 </style>
