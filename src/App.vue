@@ -94,6 +94,38 @@
       </VueFlow>
     </main>
 
+    <aside v-if="selectedNode" class="properties-panel">
+      <div class="panel-header">
+        <h3>{{ selectedNode.data.label }} 속성</h3>
+        <button class="close-panel-btn" @click="selectedElementId = null">×</button>
+      </div>
+      <div class="panel-content">
+        <div class="prop-section" v-if="selectedNode.data.inputs && selectedNode.data.inputs.length > 0">
+          <h4>입력 단자 (Inputs)</h4>
+          <div v-for="input in selectedNode.data.inputs" :key="input" class="prop-row">
+            <span class="prop-name">{{ input }}</span>
+            <span class="prop-type">ANY</span>
+          </div>
+        </div>
+
+        <div class="prop-section" v-if="selectedNode.data.outputs && selectedNode.data.outputs.length > 0">
+          <h4>출력 단자 (Outputs)</h4>
+          <div v-for="output in selectedNode.data.outputs" :key="output" class="prop-row">
+            <span class="prop-name">{{ output }}</span>
+            <span class="prop-type">ANY</span>
+          </div>
+        </div>
+
+        <div class="prop-section" v-if="selectedNode.data.inputs && selectedNode.data.inputs.length > 0">
+          <h4>파라미터 (Parameters)</h4>
+          <div v-for="(_, i) in selectedNode.data.inputs" :key="'param'+i" class="prop-row">
+            <span class="prop-name">Parameter{{ i + 1 }}</span>
+            <span class="prop-type">ANY</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
     <!-- JSON 모달 팝업 추가 -->
     <div v-if="showJsonModal" class="modal-overlay" @click.self="showJsonModal = false">
       <div class="modal-content">
@@ -141,7 +173,7 @@
 </template>
 
 <script setup>
-import { ref, markRaw, onMounted, onUnmounted } from 'vue'
+import { ref, computed, markRaw, onMounted, onUnmounted } from 'vue'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
@@ -162,13 +194,18 @@ const { toObject, onConnect, addEdges, onEdgeClick, onNodeClick, onPaneClick, on
 const selectedElementId = ref(null)
 const copiedNode = ref(null) // 복사된 노드 저장용
 
+const selectedNode = computed(() => {
+  if (!selectedElementId.value) return null
+  return elements.value.find(el => el.id === selectedElementId.value && el.type === 'fbd') || null
+})
+
 const isAuthenticated = ref(localStorage.getItem('fbd_auth') === 'true')
 const loginId = ref('')
 const loginPw = ref('')
 const loginError = ref('')
 
 const handleLogin = () => {
-  if (loginId.value === 'admin' && loginPw.value === '1234') {
+  if (loginId.value === 'admin' && loginPw.value === 'fbdeditor1234') {
     isAuthenticated.value = true
     localStorage.setItem('fbd_auth', 'true')
     loginError.value = ''
@@ -744,8 +781,8 @@ const handleFileUpload = (event) => {
 .login-btn { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
 .login-btn:hover { background: #0056b3; }
 
-.editor-container { display: flex; height: 100vh; width: 100vw; font-family: sans-serif; }
-.sidebar { width: 230px; border-right: 1px solid #ccc; padding: 15px; background: #f9f9f9; overflow-y: auto; }
+.editor-container { display: flex; height: 100vh; width: 100vw; font-family: sans-serif; overflow: hidden; }
+.sidebar { width: 230px; border-right: 1px solid #ccc; padding: 15px; background: #f9f9f9; overflow-y: auto; flex-shrink: 0; }
 .category-section { margin-bottom: 10px; }
 .category-title { margin: 0 0 10px 0; font-size: 14px; color: #333; border-bottom: 2px solid #ddd; padding-bottom: 5px; text-transform: uppercase; transition: color 0.2s; }
 .category-title:hover { color: #007bff; }
@@ -782,4 +819,18 @@ const handleFileUpload = (event) => {
 .close-btn:hover { background: #c82333; }
 .copy-btn { padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
 .copy-btn:hover { background: #218838; }
+
+/* 우측 속성 패널 스타일 */
+.properties-panel { width: 260px; border-left: 1px solid #ccc; background: #f9f9f9; display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
+.panel-header { padding: 15px; background: #eee; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+.panel-header h3 { margin: 0; font-size: 15px; color: #333; }
+.close-panel-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #666; padding: 0 5px; }
+.close-panel-btn:hover { color: #dc3545; }
+.panel-content { padding: 15px; }
+.prop-section { margin-bottom: 20px; }
+.prop-section h4 { margin: 0 0 10px 0; font-size: 13px; color: #007bff; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; }
+.prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; }
+.prop-name { color: #333; font-weight: bold; }
+.prop-type { color: #6c757d; background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+
 </style>

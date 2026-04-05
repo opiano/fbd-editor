@@ -52,7 +52,7 @@ defineProps(['data'])
 .fbd-node.is-small .node-content { padding: 4px 2px 0 2px; }
 .fbd-node.is-small .selector, .fbd-node.is-small .var-input { font-size: 9px; padding: 1px; margin-bottom: 2px; }
 .fbd-node.is-small .port-item { height: 16px; padding: 0 8px; }
-.fbd-node.is-small .port-text { font-size: 9px; }
+.fbd-node.is-small .port-text { font-size: 8px; }
 
 .node-header { background: #444; color: white; padding: 2px 4px; font-size: 9px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .header-input { background: #28a745; }
@@ -62,7 +62,7 @@ defineProps(['data'])
 .node-body { display: flex; justify-content: space-between; padding: 6px 0; }
 .ports-side { display: flex; flex-direction: column; gap: 3px; position: relative; }
 .port-item { display: flex; align-items: center; height: 14px; position: relative; padding: 0 8px; }
-.port-text { font-size: 10px; color: #333; }
+.port-text { font-size: 8px; color: #333; }
 .align-right { align-items: flex-end; }
 :deep(.vue-flow__handle) { width: 8px; height: 8px; background: #555; border: 1px solid white; }
 
