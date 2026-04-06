@@ -70,12 +70,12 @@
       </div>
       <hr />
       <div class="toolbar-actions">
-        <button class="icon-btn" style="color: #dc3545;" title="화면 지우기" @click="clearScreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+        <button class="icon-btn" style="color: #dc3545;" title="빈 화면으로 초기화" @click="clearScreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></button>
+        <button class="icon-btn" style="color: #17a2b8;" title="파일 불러오기" @click="triggerFileUpload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2 2h4a2 2 0 0 1 2 2v1M5 19h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2z"></path></svg></button>
+        <button class="icon-btn" style="color: #007bff;" title="파일로 저장" @click="downloadFile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
         <button class="icon-btn" style="color: #ffc107;" title="FBD 검증" @click="verifyFBD"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></button>
         <button class="icon-btn" style="color: #6f42c1;" title="META INFO 확인" @click="exportDownloadInfo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
         <button class="icon-btn" style="color: #28a745;" title="JSON 확인" @click="exportJson"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"></path><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"></path></svg></button>
-        <button class="icon-btn" style="color: #007bff;" title="파일로 저장" @click="downloadFile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
-        <button class="icon-btn" style="color: #17a2b8;" title="파일 불러오기" @click="triggerFileUpload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2 2h4a2 2 0 0 1 2 2v1M5 19h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2z"></path></svg></button>
       </div>
       <input type="file" ref="fileInput" style="display: none" accept=".json" @change="handleFileUpload" />
     </aside>
@@ -96,12 +96,12 @@
 
     <aside v-if="selectedNode" class="properties-panel">
       <div class="panel-header">
-        <h3>{{ selectedNode.data.label }} 속성</h3>
+        <h3>{{ selectedNode.data.label }} Properties</h3>
         <button class="close-panel-btn" @click="selectedElementId = null">×</button>
       </div>
       <div class="panel-content">
         <div class="prop-section" v-if="selectedNode.data.inputs && selectedNode.data.inputs.length > 0">
-          <h4>입력 단자 (Inputs)</h4>
+          <h4>Inputs</h4>
           <div v-for="input in selectedNode.data.inputs" :key="input" class="prop-row">
             <span class="prop-name">{{ input }}</span>
             <span class="prop-type">{{ BlockDefinitions[selectedNode.data.label] ? BlockDefinitions[selectedNode.data.label].inputs.find(i => i.name === input)?.dataType || 'ANY' : 'ANY' }}</span>
@@ -109,7 +109,7 @@
         </div>
 
         <div class="prop-section" v-if="selectedNode.data.outputs && selectedNode.data.outputs.length > 0">
-          <h4>출력 단자 (Outputs)</h4>
+          <h4>Outputs</h4>
           <div v-for="output in selectedNode.data.outputs" :key="output" class="prop-row">
             <span class="prop-name">{{ output }}</span>
             <span class="prop-type">{{ BlockDefinitions[selectedNode.data.label] ? BlockDefinitions[selectedNode.data.label].outputs.find(o => o.name === output)?.dataType || 'ANY' : 'ANY' }}</span>
@@ -117,10 +117,10 @@
         </div>
 
         <div class="prop-section" v-if="selectedNode.data.parameters && selectedNode.data.parameters.length > 0">
-          <h4>파라미터 (Parameters)</h4>
+          <h4>Parameters</h4>
           <div v-for="(param, i) in selectedNode.data.parameters" :key="'param'+i" class="prop-row param-row-compact">
             <span class="prop-name" style="width: 50px; text-align: left;">{{ param.name.replace('Parameter', 'Para') }}</span>
-            <input type="number" step="any" v-model="param.value" class="param-input-compact" placeholder="값..." />
+            <input type="number" step="any" v-model="param.value" class="param-input-compact" placeholder="Value..." />
             <span class="prop-type" style="width: 40px; text-align: center;">{{ param.dataType }}</span>
           </div>
         </div>
@@ -578,6 +578,11 @@ const exportDownloadInfo = () => {
         }
         
         nodeContent = `${fbName},"${inputLinks.join(',')}"`
+
+        if (node.data.parameters && node.data.parameters.length > 0) {
+          const paramValues = node.data.parameters.map(p => p.value !== undefined && p.value !== null ? p.value : '').join(',')
+          nodeContent += `,"${paramValues}"`
+        }
 
         const outputLabels = ['AOUT', 'DOUT', 'MOUT', 'AOUT_REL', 'DOUT_REL', 'MOUT_REL', 'OUT']
         if (outputLabels.includes(node.data.label)) {
