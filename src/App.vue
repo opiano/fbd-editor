@@ -201,15 +201,14 @@ const selectedNode = computed(() => {
   return elements.value.find(el => el.id === selectedElementId.value && el.type === 'fbd') || null
 })
 
-const isAuthenticated = ref(localStorage.getItem('fbd_auth') === 'true')
+const isAuthenticated = ref(false)
 const loginId = ref('')
 const loginPw = ref('')
 const loginError = ref('')
 
 const handleLogin = () => {
-  if (loginId.value === 'admin' && loginPw.value === 'fbdeditor1234') {
+  if (loginId.value === 'admin' && loginPw.value === 'fbd1234') {
     isAuthenticated.value = true
-    localStorage.setItem('fbd_auth', 'true')
     loginError.value = ''
   } else {
     loginError.value = '아이디 또는 비밀번호가 일치하지 않습니다.'
