@@ -22,6 +22,15 @@
 
   <div v-else class="editor-container">
     <aside class="sidebar">
+      <div class="toolbar-actions">
+        <button class="icon-btn" style="color: #dc3545;" title="빈 화면으로 초기화" @click="clearScreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></button>
+        <button class="icon-btn" style="color: #17a2b8;" title="파일 불러오기" @click="triggerFileUpload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2 2h4a2 2 0 0 1 2 2v1M5 19h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2z"></path></svg></button>
+        <button class="icon-btn" style="color: #007bff;" title="파일로 저장" @click="downloadFile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
+        <button class="icon-btn" style="color: #ffc107;" title="FBD 검증" @click="verifyFBD"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></button>
+        <button class="icon-btn" style="color: #6f42c1;" title="META INFO 확인" @click="exportDownloadInfo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
+      </div>
+      <hr style="margin-bottom:15px;" />
+
       <div class="var-toolbar-actions">
         <button class="icon-btn var-btn" title="Input 블록 추가" @click="addNode({ type: 'Input', category: 'input', inputs: [], outputs: ['OUT'] })">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="4" width="8" height="16" rx="1" /><path d="M2 12h10"/><path d="m8 8 4 4-4 4"/></svg>
@@ -68,15 +77,6 @@
           </template>
         </div>
       </div>
-      <hr />
-      <div class="toolbar-actions">
-        <button class="icon-btn" style="color: #dc3545;" title="빈 화면으로 초기화" @click="clearScreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></button>
-        <button class="icon-btn" style="color: #17a2b8;" title="파일 불러오기" @click="triggerFileUpload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2 2h4a2 2 0 0 1 2 2v1M5 19h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2z"></path></svg></button>
-        <button class="icon-btn" style="color: #007bff;" title="파일로 저장" @click="downloadFile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
-        <button class="icon-btn" style="color: #ffc107;" title="FBD 검증" @click="verifyFBD"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></button>
-        <button class="icon-btn" style="color: #6f42c1;" title="META INFO 확인" @click="exportDownloadInfo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
-        <button class="icon-btn" style="color: #28a745;" title="JSON 확인" @click="exportJson"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"></path><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"></path></svg></button>
-      </div>
       <input type="file" ref="fileInput" style="display: none" accept=".json" @change="handleFileUpload" />
     </aside>
 
@@ -86,6 +86,11 @@
         <div class="fbd-info-row"><label>Name:</label><input type="text" v-model="diagramInfo.name" /></div>
         <div class="fbd-info-row"><label>Desc:</label><input type="text" v-model="diagramInfo.desc" /></div>
         <div class="fbd-info-row"><label>Period:</label><input type="number" v-model="diagramInfo.period" /></div>
+      </div>
+
+      <div class="mode-toggle-panel">
+        <button :class="{ active: currentMode === 'setting' }" @click="setMode('setting')">설정 모드</button>
+        <button :class="{ active: currentMode === 'monitoring' }" @click="setMode('monitoring')">모니터링 모드</button>
       </div>
 
       <VueFlow v-model="elements" :node-types="nodeTypes" :fit-view-on-init="true">
@@ -104,6 +109,7 @@
           <h4>Inputs</h4>
           <div v-for="input in selectedNode.data.inputs" :key="input" class="prop-row">
             <span class="prop-name">{{ input }}</span>
+            <span v-show="currentMode === 'monitoring'" class="prop-rt-val" style="color: #28a745; font-family: monospace; font-weight: bold; flex: 1; text-align: center;">{{ simulatedValues[input] ?? '--' }}</span>
             <span class="prop-type">{{ BlockDefinitions[selectedNode.data.label] ? BlockDefinitions[selectedNode.data.label].inputs.find(i => i.name === input)?.dataType || 'ANY' : 'ANY' }}</span>
           </div>
         </div>
@@ -112,6 +118,7 @@
           <h4>Outputs</h4>
           <div v-for="output in selectedNode.data.outputs" :key="output" class="prop-row">
             <span class="prop-name">{{ output }}</span>
+            <span v-show="currentMode === 'monitoring'" class="prop-rt-val" style="color: #28a745; font-family: monospace; font-weight: bold; flex: 1; text-align: center;">{{ simulatedValues[output] ?? '--' }}</span>
             <span class="prop-type">{{ BlockDefinitions[selectedNode.data.label] ? BlockDefinitions[selectedNode.data.label].outputs.find(o => o.name === output)?.dataType || 'ANY' : 'ANY' }}</span>
           </div>
         </div>
@@ -260,10 +267,12 @@ onEdgeClick(({ edge }) => {
 
 onNodeClick(({ node }) => {
   selectedElementId.value = node.id
+  simulatedValues.value = {} // 노드 변경 시 값 초기화
 })
 
 onPaneClick(() => {
   selectedElementId.value = null
+  simulatedValues.value = {} // 화면 클릭 시 값 초기화
 })
 
 const handleKeyDown = (e) => {
@@ -301,12 +310,43 @@ const handleKeyDown = (e) => {
   }
 }
 
+const simulatedValues = ref({})
+let simInterval = null
+
+const currentMode = ref('setting')
+
+const setMode = (mode) => {
+  currentMode.value = mode
+  if (mode === 'setting') {
+    simulatedValues.value = {}
+  }
+}
+
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
+  
+  // 방법 3: 실시간 데이터 시뮬레이션
+  simInterval = setInterval(() => {
+    if (currentMode.value === 'monitoring' && selectedNode.value) {
+      const newVals = {}
+      if (selectedNode.value.data.inputs) {
+        selectedNode.value.data.inputs.forEach(input => {
+          newVals[input] = (Math.random() * 100).toFixed(1)
+        })
+      }
+      if (selectedNode.value.data.outputs) {
+        selectedNode.value.data.outputs.forEach(output => {
+          newVals[output] = (Math.random() * 100).toFixed(1)
+        })
+      }
+      simulatedValues.value = newVals
+    }
+  }, 1000) // 1초마다 랜덤 값 업데이트
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
+  if (simInterval) clearInterval(simInterval)
 })
 
 // 2. 사이드바 메뉴 카테고리 정의 (접기/펴기 상태 포함을 위해 ref 사용)
@@ -816,7 +856,9 @@ const handleFileUpload = (event) => {
 .menu-item:hover { background: #e0e0e0; }
 .canvas-area { flex-grow: 1; position: relative; background: #eee; }
 
-.toolbar-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 10px 0; }
+.toolbar-actions { display: flex; flex-wrap: nowrap; gap: 4px; justify-content: space-between; padding: 5px 0 10px 0; }
+.toolbar-actions .icon-btn { padding: 6px; flex: 1; }
+.toolbar-actions .icon-btn svg { width: 18px; height: 18px; }
 .var-toolbar-actions { display: flex; gap: 8px; justify-content: space-between; padding-bottom: 5px; }
 .var-btn { flex: 1; gap: 6px; font-weight: bold; font-size: 13px; color: #444; border-color: #bbb; }
 .var-btn svg { width: 18px; height: 18px; color: #555; }
@@ -855,5 +897,11 @@ const handleFileUpload = (event) => {
 .param-row-compact { flex-direction: row; align-items: center; gap: 8px; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 6px; }
 .param-input-compact { flex: 1; min-width: 0; width: 100%; border: 1px solid #ccc; padding: 4px 6px; border-radius: 4px; font-size: 11px; box-sizing: border-box; text-align: right; transition: border-color 0.2s; }
 .param-input-compact:focus { outline: none; border-color: #007bff; }
+
+/* 모드 전환 토글 패널 스타일 */
+.mode-toggle-panel { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 20; display: flex; background: white; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); overflow: hidden; border: 1px solid #ddd; }
+.mode-toggle-panel button { border: none; background: transparent; padding: 8px 20px; font-size: 13px; font-weight: bold; cursor: pointer; color: #666; transition: all 0.2s; outline: none; }
+.mode-toggle-panel button:hover { background: #f0f0f0; }
+.mode-toggle-panel button.active { background: #007bff; color: white; }
 
 </style>
