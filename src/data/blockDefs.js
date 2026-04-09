@@ -927,6 +927,42 @@ export const BlockDefinitions =
             }
         ]
     },
+    "APOUT": {
+        "type": "APOUT",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "REAL"
+            },
+            {
+                "name": "EN",
+                "dataType": "BOOL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "REAL"
+            }
+        ],
+        "parameters": [
+            {
+                "name": "DEVICE",
+                "dataType": "HEX",
+                "value": 0.0
+            },
+            {
+                "name": "OBJECT",
+                "dataType": "HEX",
+                "value": 0.0
+            },
+            {
+                "name": "PROPERTY",
+                "dataType": "INT",
+                "value": 0.0
+            }
+        ]
+    },
     "ASINE_F": {
         "type": "ASINE_F",
         "inputs": [
@@ -1619,6 +1655,42 @@ export const BlockDefinitions =
             {
                 "name": "OBJECT",
                 "dataType": "HEX",
+                "value": 0.0
+            }
+        ]
+    },
+    "DPOUT": {
+        "type": "DPOUT",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "EN",
+                "dataType": "BOOL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "BOOL"
+            }
+        ],
+        "parameters": [
+            {
+                "name": "DEVICE",
+                "dataType": "HEX",
+                "value": 0.0
+            },
+            {
+                "name": "OBJECT",
+                "dataType": "HEX",
+                "value": 0.0
+            },
+            {
+                "name": "PROPERTY",
+                "dataType": "INT",
                 "value": 0.0
             }
         ]
@@ -3730,6 +3802,42 @@ export const BlockDefinitions =
                 "name": "NUM",
                 "dataType": "INT",
                 "value": 5.0
+            }
+        ]
+    },
+    "MPOUT": {
+        "type": "MPOUT",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "INT"
+            },
+            {
+                "name": "EN",
+                "dataType": "BOOL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "INT"
+            }
+        ],
+        "parameters": [
+            {
+                "name": "DEVICE",
+                "dataType": "HEX",
+                "value": 0.0
+            },
+            {
+                "name": "OBJECT",
+                "dataType": "HEX",
+                "value": 0.0
+            },
+            {
+                "name": "PROPERTY",
+                "dataType": "INT",
+                "value": 0.0
             }
         ]
     },

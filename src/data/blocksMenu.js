@@ -3253,7 +3253,40 @@ export const initialMenuCategories = [
                 "outputs": [
                     "OUT"
                 ]
-            }
+            },
+		    {
+		        "type": "APOUT",
+		        "category": "block",
+		        "inputs": [
+		            "IN",
+		            "EN"
+		        ],
+		        "outputs": [
+		            "OUT"
+		        ]
+		    },
+            {
+                "type": "DPOUT",
+                "category": "block",
+                "inputs": [
+                    "IN",
+                    "EN"
+                ],
+                "outputs": [
+                    "OUT"
+                ]
+            },
+            {
+                "type": "MPOUT",
+                "category": "block",
+                "inputs": [
+                    "IN",
+                    "EN"
+                ],
+                "outputs": [
+                    "OUT"
+                ]
+            }                   
         ]        
       }
     ]
