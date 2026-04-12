@@ -24,13 +24,15 @@
 
     <div class="node-body">
       <div class="ports-side">
-        <div v-for="input in data.inputs" :key="input" class="port-item">
+        <div v-for="(input, index) in data.inputs" :key="input" class="port-item">
           <Handle type="target" :position="Position.Left" :id="input" />
           <span class="port-text">{{ input }}</span>
+          <span v-if="currentMode === 'monitoring' && realtimeData?.[data.id]?.IN?.[index] !== undefined" class="port-rt-val-node rt-in">{{ realtimeData[data.id].IN[index] }}</span>
         </div>
       </div>
       <div class="ports-side align-right">
-        <div v-for="output in data.outputs" :key="output" class="port-item">
+        <div v-for="(output, index) in data.outputs" :key="output" class="port-item">
+          <span v-if="currentMode === 'monitoring' && realtimeData?.[data.id]?.OUT?.[index] !== undefined" class="port-rt-val-node rt-out">{{ realtimeData[data.id].OUT[index] }}</span>
           <span class="port-text">{{ output }}</span>
           <Handle type="source" :position="Position.Right" :id="output" />
         </div>
@@ -41,7 +43,11 @@
 
 <script setup>
 import { Handle, Position } from '@vue-flow/core'
+import { inject } from 'vue'
 defineProps(['data'])
+
+const currentMode = inject('currentMode')
+const realtimeData = inject('realtimeData')
 </script>
 
 <style scoped>
@@ -69,4 +75,7 @@ defineProps(['data'])
 .node-content { padding: 6px 8px 0 8px; }
 .selector { width: 100%; font-size: 10px; margin-bottom: 4px; border: 1px solid #ccc; border-radius: 2px; }
 .var-input { width: 100%; font-size: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 2px; padding: 2px; }
+.port-rt-val-node { position: absolute; top: -7px; font-size: 7px; color: #155724; background-color: rgba(255, 255, 255, 0.85); box-shadow: 0 0 2px rgba(0,0,0,0.1); padding: 0 3px; border-radius: 2px; font-weight: bold; font-family: monospace; white-space: nowrap; pointer-events: none; z-index: 10; }
+.rt-in { left: -6px; transform: translateX(-50%); }
+.rt-out { right: -6px; transform: translateX(50%); }
 </style>

@@ -101,24 +101,24 @@
 
     <aside v-if="selectedNode" class="properties-panel">
       <div class="panel-header">
-        <h3>{{ selectedNode.data.label }} Properties</h3>
+        <h3>[{{ selectedNode.data.id }}] {{ selectedNode.data.label }} Properties</h3>
         <button class="close-panel-btn" @click="selectedElementId = null">×</button>
       </div>
       <div class="panel-content">
         <div class="prop-section" v-if="selectedNode.data.inputs && selectedNode.data.inputs.length > 0">
           <h4>Inputs</h4>
-          <div v-for="input in selectedNode.data.inputs" :key="input" class="prop-row">
+          <div v-for="(input, index) in selectedNode.data.inputs" :key="input" class="prop-row">
             <span class="prop-name">{{ input }}</span>
-            <span v-show="currentMode === 'monitoring'" class="prop-rt-val" style="color: #28a745; font-family: monospace; font-weight: bold; flex: 1; text-align: center;">{{ simulatedValues[input] ?? '--' }}</span>
+            <span v-show="currentMode === 'monitoring'" class="prop-rt-val" style="color: #28a745; font-family: monospace; font-weight: bold; flex: 1; text-align: center;">{{ simulatedValues?.IN?.[index] ?? '--' }}</span>
             <span class="prop-type">{{ BlockDefinitions[selectedNode.data.label] ? BlockDefinitions[selectedNode.data.label].inputs.find(i => i.name === input)?.dataType || 'ANY' : 'ANY' }}</span>
           </div>
         </div>
 
         <div class="prop-section" v-if="selectedNode.data.outputs && selectedNode.data.outputs.length > 0">
           <h4>Outputs</h4>
-          <div v-for="output in selectedNode.data.outputs" :key="output" class="prop-row">
+          <div v-for="(output, index) in selectedNode.data.outputs" :key="output" class="prop-row">
             <span class="prop-name">{{ output }}</span>
-            <span v-show="currentMode === 'monitoring'" class="prop-rt-val" style="color: #28a745; font-family: monospace; font-weight: bold; flex: 1; text-align: center;">{{ simulatedValues[output] ?? '--' }}</span>
+            <span v-show="currentMode === 'monitoring'" class="prop-rt-val" style="color: #28a745; font-family: monospace; font-weight: bold; flex: 1; text-align: center;">{{ simulatedValues?.OUT?.[index] ?? '--' }}</span>
             <span class="prop-type">{{ BlockDefinitions[selectedNode.data.label] ? BlockDefinitions[selectedNode.data.label].outputs.find(o => o.name === output)?.dataType || 'ANY' : 'ANY' }}</span>
           </div>
         </div>
@@ -177,17 +177,34 @@
         </div>
       </div>
     </div>
+
+    <!-- 제어기 IP 모달 팝업 추가 -->
+    <div v-if="showMqttIpModal" class="modal-overlay" @click.self="showMqttIpModal = false">
+      <div class="modal-content" style="width: 380px; max-width: 90vw;">
+        <h3>제어기 IP 주소</h3>
+        <p style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">모니터링 데이터를 가져올 제어기의 IP 주소를 입력해주세요.</p>
+        <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+          <label style="font-weight:bold; white-space: nowrap;">제어기 IP:</label>
+          <input type="text" v-model="mqttBrokerIp" placeholder="예: 192.168.0.100" style="width:240px; padding:6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" @keyup.enter="confirmMqttIp" />
+        </div>
+        <div class="modal-actions" style="justify-content: flex-end; gap: 10px;">
+          <button style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" @click="cancelMqttIp">취소</button>
+          <button style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" @click="confirmMqttIp">연결</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, markRaw, onMounted, onUnmounted } from 'vue'
+import { ref, computed, markRaw, onMounted, onUnmounted, watch, provide } from 'vue'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
 import CustomBlock from './components/CustomBlock.vue'
 import { initialMenuCategories } from './data/blocksMenu'
 import { BlockDefinitions } from './data/blockDefs'
+import mqtt from 'mqtt'
 
 // App.vue의 script setup 부분에 추가
 import { ConnectionLineType } from '@vue-flow/core'
@@ -311,42 +328,117 @@ const handleKeyDown = (e) => {
 }
 
 const simulatedValues = ref({})
-let simInterval = null
 
 const currentMode = ref('setting')
+const showMqttIpModal = ref(false)
+const mqttBrokerIp = ref('')
 
 const setMode = (mode) => {
-  currentMode.value = mode
-  if (mode === 'setting') {
+  if (mode === 'monitoring') {
+    const savedIp = localStorage.getItem('mqttBrokerIp')
+    if (savedIp && !mqttBrokerIp.value) {
+      mqttBrokerIp.value = savedIp
+    }
+    showMqttIpModal.value = true
+  } else {
+    currentMode.value = 'setting'
     simulatedValues.value = {}
+    if (mqttClient) {
+      mqttClient.end()
+      mqttClient = null
+      console.log('MQTT Disconnected (Setting Mode)')
+    }
   }
 }
 
+const cancelMqttIp = () => {
+  showMqttIpModal.value = false
+  currentMode.value = 'setting'
+}
+
+const confirmMqttIp = () => {
+  if (!mqttBrokerIp.value.trim()) {
+    alert("IP 주소를 입력해주세요.")
+    return
+  }
+  localStorage.setItem('mqttBrokerIp', mqttBrokerIp.value.trim())
+  showMqttIpModal.value = false
+  currentMode.value = 'monitoring'
+  connectMQTT()
+}
+
+const realtimeData = ref({})
+provide('currentMode', currentMode)
+provide('realtimeData', realtimeData)
+let mqttClient = null
+
+const connectMQTT = () => {
+  if (mqttClient) {
+    mqttClient.end()
+  }
+  const brokerUrl = `ws://${mqttBrokerIp.value.trim()}:9001`
+  mqttClient = mqtt.connect(brokerUrl)
+
+  mqttClient.on('connect', () => {
+    console.log('MQTT Connected to Raspberry Pi')
+    // inst 값이 가변적일 수 있으므로 #을 사용해 모든 fbd/monitor 하위 값을 수신합니다.
+    mqttClient.subscribe('fbd/monitor/#')
+  })
+
+  mqttClient.on('message', (topic, message) => {
+    if (currentMode.value === 'monitoring') {
+      console.log(`[MQTT 수신] Topic: ${topic}, Payload: ${message.toString()}`)
+      console.log(`[현재 화면 설정] Inst: '${diagramInfo.value.inst}'`)
+
+      // 현재 열려있는 다이어그램의 inst 값이 없으면 무시
+      if (!diagramInfo.value.inst) {
+        console.warn("다이어그램의 Inst 값이 비어있어 데이터를 무시합니다.")
+        return
+      }
+
+      const expectedTopic = `fbd/monitor/${diagramInfo.value.inst}`
+      
+      // 현재 FBD 창의 inst와 일치하는 토픽의 데이터만 수신
+      if (topic === expectedTopic) {
+        try {
+          const payload = JSON.parse(message.toString())
+          realtimeData.value = payload
+          console.log(`[데이터 매핑 성공] realtimeData 업데이트됨`)
+
+          // 사이드바의 Properties 패널도 실시간으로 갱신되도록 처리
+          if (selectedNode.value && realtimeData.value[selectedNode.value.data.id]) {
+            simulatedValues.value = realtimeData.value[selectedNode.value.data.id]
+          }
+        } catch(e) {
+          console.error("MQTT Message parsing error", e)
+        }
+      } else {
+        console.warn(`토픽 불일치! 기대한 토픽: ${expectedTopic}, 실제 수신 토픽: ${topic}`)
+      }
+    }
+  })
+}
+
+// selectedNode가 변경될 때마다 realtimeData에서 해당 노드 값을 찾아 갱신해줍니다.
+watch(selectedNode, (newVal) => {
+  if (currentMode.value === 'monitoring' && newVal && realtimeData.value[newVal.data.id]) {
+    simulatedValues.value = realtimeData.value[newVal.data.id]
+  } else if (currentMode.value === 'setting') {
+    simulatedValues.value = {}
+  }
+})
+
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
-  
-  // 방법 3: 실시간 데이터 시뮬레이션
-  simInterval = setInterval(() => {
-    if (currentMode.value === 'monitoring' && selectedNode.value) {
-      const newVals = {}
-      if (selectedNode.value.data.inputs) {
-        selectedNode.value.data.inputs.forEach(input => {
-          newVals[input] = (Math.random() * 100).toFixed(1)
-        })
-      }
-      if (selectedNode.value.data.outputs) {
-        selectedNode.value.data.outputs.forEach(output => {
-          newVals[output] = (Math.random() * 100).toFixed(1)
-        })
-      }
-      simulatedValues.value = newVals
-    }
-  }, 1000) // 1초마다 랜덤 값 업데이트
+  const savedIp = localStorage.getItem('mqttBrokerIp')
+  if (savedIp) mqttBrokerIp.value = savedIp
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
-  if (simInterval) clearInterval(simInterval)
+  if (mqttClient) {
+    mqttClient.end()
+  }
 })
 
 // 2. 사이드바 메뉴 카테고리 정의 (접기/펴기 상태 포함을 위해 ref 사용)
