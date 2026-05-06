@@ -17,10 +17,7 @@
       <input v-model="data.varValue" placeholder="Input Name..." class="var-input"/>
     </div>
 
-    <!-- OUT Block Settings -->
-    <div v-if="['AOUT', 'DOUT', 'MOUT', 'AOUT_REL', 'DOUT_REL', 'MOUT_REL', 'OUT'].includes(data.label)" class="node-content custom-var-content nodrag">
-      <input v-model="data.varValue" placeholder="Output Name..." class="var-input"/>
-    </div>
+
 
     <div class="node-body">
       <div class="ports-side">

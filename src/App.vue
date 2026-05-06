@@ -126,8 +126,9 @@
         <div class="prop-section" v-if="selectedNode.data.parameters && selectedNode.data.parameters.length > 0">
           <h4>Parameters</h4>
           <div v-for="(param, i) in selectedNode.data.parameters" :key="'param'+i" class="prop-row param-row-compact">
-            <span class="prop-name" style="width: 50px; text-align: left;">{{ param.name.replace('Parameter', 'Para') }}</span>
-            <input type="number" step="any" v-model="param.value" class="param-input-compact" placeholder="Value..." />
+            <span class="prop-name" style="width: 80px; text-align: left;">{{ param.name.replace('Parameter', 'Para') }}</span>
+            <input v-if="param.dataType === 'HEX'" type="text" v-model="param.value" class="param-input-compact" placeholder="Value..." />
+            <input v-else type="number" step="any" v-model="param.value" class="param-input-compact" placeholder="Value..." />
             <span class="prop-type" style="width: 40px; text-align: center;">{{ param.dataType }}</span>
           </div>
         </div>
@@ -590,25 +591,22 @@ const verifyFBD = () => {
     }
   })
 
-  // 1. varValue 누락 검사 (Input, Constant, Outputs)
-  const outputLabels = ['AOUT', 'DOUT', 'MOUT', 'AOUT_REL', 'DOUT_REL', 'MOUT_REL', 'OUT']
+  // 1. varValue 누락 검사 (Input, Constant)
   data.nodes.forEach(node => {
     if (!node.data) return
     const isInput = node.data.category === 'input'
     const isConstant = node.data.category === 'constant'
-    const isOutput = outputLabels.includes(node.data.label)
 
-    if (isInput || isConstant || isOutput) {
+    if (isInput || isConstant) {
       const valStr = node.data.varValue === undefined || node.data.varValue === null ? '' : String(node.data.varValue).trim()
       
       if (valStr === '') {
-        const typeName = isInput ? 'Input' : (isConstant ? 'Constant' : 'Output')
+        const typeName = isInput ? 'Input' : 'Constant'
         errors.push(`[${node.data.id ?? node.id}] ${node.data.label} 블록(${typeName})의 값을 입력해주세요.`)
-      } else if (isInput || isOutput) {
+      } else if (isInput) {
         const formatRegex = /^\s*[+-]?\d+(?:\.\d+)?\s*,\s*[^,]+\s*,\s*[+-]?\d+(?:\.\d+)?\s*$/
         if (!formatRegex.test(valStr)) {
-          const typeName = isInput ? 'Input' : 'Output'
-          errors.push(`[${node.data.id ?? node.id}] ${node.data.label} 블록(${typeName})의 입력값 형식이 올바르지 않습니다. (형식: 숫자,문자,숫자)`)
+          errors.push(`[${node.data.id ?? node.id}] ${node.data.label} 블록(Input)의 입력값 형식이 올바르지 않습니다. (형식: 숫자,문자,숫자)`)
         }
       }
     }
@@ -715,10 +713,7 @@ const exportDownloadInfo = () => {
           nodeContent += `,"${paramValues}"`
         }
 
-        const outputLabels = ['AOUT', 'DOUT', 'MOUT', 'AOUT_REL', 'DOUT_REL', 'MOUT_REL', 'OUT']
-        if (outputLabels.includes(node.data.label)) {
-          nodeContent += `,"${node.data.varValue || ''}"`
-        }
+
       }
 
       outputLines.push(`${id},${nodeType}=${nodeContent}`)
