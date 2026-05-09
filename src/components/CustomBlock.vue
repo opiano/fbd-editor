@@ -1,5 +1,5 @@
 <template>
-  <div :class="['fbd-node', (data.category === 'input' || data.category === 'constant') ? 'is-small' : '', ['AOUT', 'DOUT', 'MOUT', 'AOUT_REL', 'DOUT_REL', 'MOUT_REL', 'OUT'].includes(data.label) ? 'is-out' : '']">
+  <div :class="['fbd-node', (data.category === 'input' || data.category === 'constant') ? 'is-small' : '', ['AOUT', 'DOUT', 'MOUT', 'AOUT_REL', 'DOUT_REL', 'MOUT_REL', 'OUT'].includes(data.label) ? 'is-out' : '', selected ? 'is-selected' : '']">
     <div :class="['node-header', `header-${data.category}`]">[{{ data.id }}] {{ data.label }}</div>
     
     <!-- Constant Settings -->
@@ -45,14 +45,15 @@
 <script setup>
 import { Handle, Position } from '@vue-flow/core'
 import { inject } from 'vue'
-defineProps(['data'])
+defineProps(['data', 'selected'])
 
 const currentMode = inject('currentMode')
 const realtimeData = inject('realtimeData')
 </script>
 
 <style scoped>
-.fbd-node { background: #fff; border: 1.5px solid #222; border-radius: 3px; min-width: 80px; }
+.fbd-node { background: #fff; border: 1.5px solid #222; border-radius: 3px; min-width: 80px; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.fbd-node.is-selected { border-color: #ff007f; box-shadow: 0 0 0 4px rgba(255, 0, 127, 0.4); outline: none; z-index: 1000; }
 .fbd-node.is-small { width: 75px; min-width: 75px; max-width: 75px; font-size: 10px; }
 .fbd-node.is-out { width: 100px; min-width: 100px; max-width: 100px; }
 .fbd-node.is-small .node-body { padding: 4px 0; }

@@ -215,11 +215,12 @@ import { ConnectionLineType } from '@vue-flow/core'
 
 // 1. 커스텀 노드 타입 등록
 const nodeTypes = { fbd: markRaw(CustomBlock) }
-const { toObject, onConnect, addEdges, onEdgeClick, onNodeClick, onPaneClick, onNodesChange, onEdgesChange } = useVueFlow()
+const { toObject, onConnect, addEdges, onEdgeClick, onNodeClick, onPaneClick, onNodesChange, onEdgesChange, getSelectedNodes } = useVueFlow()
 
 // 선택된 요소를 추적하여 삭제 키 이벤트에 대응
 const selectedElementId = ref(null)
-const copiedNode = ref(null) // 복사된 노드 저장용
+const copiedNodes = ref([]) // 복사된 여러 노드 저장용
+const copiedEdges = ref([]) // 복사된 노드간 연결선 저장용
 
 const selectedNode = computed(() => {
   if (!selectedElementId.value) return null
@@ -295,35 +296,109 @@ onPaneClick(() => {
 
 const handleKeyDown = (e) => {
   if (e.key === 'Delete') {
-    if (selectedElementId.value) {
+    const selected = getSelectedNodes.value
+    if (selected && selected.length > 0) {
+      const selectedIds = selected.map(n => n.id)
+      elements.value = elements.value.filter(el => !selectedIds.includes(el.id))
+      selectedElementId.value = null
+    } else if (selectedElementId.value) {
       elements.value = elements.value.filter(el => el.id !== selectedElementId.value)
       selectedElementId.value = null
     }
   } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
-    if (selectedElementId.value) {
+    const selected = getSelectedNodes.value
+    if (selected && selected.length > 0) {
+      // 복사 대상 노드 배열 생성
+      copiedNodes.value = selected.filter(node => node.type === 'fbd').map(node => JSON.parse(JSON.stringify(node)))
+      
+      const selectedIds = copiedNodes.value.map(n => n.id)
+      // 선택된 노드들 사이의 엣지 복사
+      copiedEdges.value = elements.value.filter(el => 
+        el.source && el.target && selectedIds.includes(el.source) && selectedIds.includes(el.target)
+      ).map(edge => JSON.parse(JSON.stringify(edge)))
+    } else if (selectedElementId.value) { // 단일 선택 (안전장치)
       const nodeToCopy = elements.value.find(el => el.id === selectedElementId.value && el.type === 'fbd')
       if (nodeToCopy) {
-        copiedNode.value = JSON.parse(JSON.stringify(nodeToCopy))
-        // 선택 상태 해제하지 않음 (사용자가 복사했는지 알기 위해 선택 유지)
+        copiedNodes.value = [JSON.parse(JSON.stringify(nodeToCopy))]
+        copiedEdges.value = []
       }
     }
   } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
-    if (copiedNode.value) {
-      const nextId = nodeCounter++
-
-      // 복사된 노드 정보 바탕으로 새 노드 생성
-      const newNode = JSON.parse(JSON.stringify(copiedNode.value))
-      newNode.id = String(nextId)
-      newNode.data.id = nextId
-      // 위치를 살짝 이동 (겹치지 않게)
-      newNode.position.x += 20
-      newNode.position.y += 20
-
-      elements.value.push(newNode)
+    if (copiedNodes.value && copiedNodes.value.length > 0) {
+      // 기존 노드 중 최대 ID 찾기
+      let maxId = -1
+      elements.value.forEach(el => {
+        if (el.type === 'fbd') {
+          const idNum = parseInt(el.data.id, 10)
+          if (!isNaN(idNum) && idNum > maxId) {
+            maxId = idNum
+          }
+        }
+      })
       
-      // 새로 붙여넣은 노드를 선택 상태로 만들고, 다음 붙여넣을 때도 이동되도록 업데이트
-      selectedElementId.value = newNode.id
-      copiedNode.value = newNode
+      // 새로 할당할 시작 ID (최대 번호 + 1)
+      let nextId = Math.max(nodeCounter, maxId + 1)
+      
+      const newNodes = []
+      const newCopiedNodes = [] // 다음 붙여넣기를 위해 복사본 업데이트
+      const idMapping = {} // 구 ID -> 신규 ID 매핑
+      
+      copiedNodes.value.forEach(node => {
+        const newNode = JSON.parse(JSON.stringify(node))
+        const newIdStr = String(nextId)
+        idMapping[node.id] = newIdStr
+        
+        newNode.id = newIdStr
+        newNode.data.id = nextId
+        // 위치를 살짝 이동 (겹치지 않게)
+        newNode.position.x += 20
+        newNode.position.y += 20
+        
+        newNodes.push(newNode)
+        newCopiedNodes.push(newNode)
+        nextId++
+      })
+
+      const newEdges = []
+      const newCopiedEdges = []
+      
+      if (copiedEdges.value && copiedEdges.value.length > 0) {
+        copiedEdges.value.forEach(edge => {
+          const newEdge = JSON.parse(JSON.stringify(edge))
+          if (idMapping[edge.source] && idMapping[edge.target]) {
+            newEdge.source = idMapping[edge.source]
+            newEdge.target = idMapping[edge.target]
+            
+            const edgeCurrentId = nextId++
+            newEdge.originalId = newEdge.id || `vueflow__edge-${newEdge.source}${newEdge.sourceHandle||''}-${newEdge.target}${newEdge.targetHandle||''}`
+            newEdge.id = String(edgeCurrentId)
+            newEdge.label = String(edgeCurrentId)
+            if (newEdge.data) {
+              newEdge.data.id = edgeCurrentId
+            } else {
+              newEdge.data = { id: edgeCurrentId }
+            }
+            
+            newEdges.push(newEdge)
+            newCopiedEdges.push(newEdge)
+          }
+        })
+      }
+
+      // nodeCounter 갱신 (다음에 생성될 노드를 위해)
+      nodeCounter = nextId
+      
+      // 새로운 노드와 엣지 추가
+      elements.value.push(...newNodes, ...newEdges)
+      
+      // 다음 붙여넣기 시 또 이동되도록 복사 상태 업데이트
+      copiedNodes.value = newCopiedNodes
+      copiedEdges.value = newCopiedEdges
+      
+      // 마지막 노드를 selectedElementId로 선택
+      if (newNodes.length > 0) {
+        selectedElementId.value = newNodes[newNodes.length - 1].id
+      }
     }
   }
 }
