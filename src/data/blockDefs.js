@@ -887,12 +887,12 @@ export const BlockDefinitions =
             {
                 "name": "DEVICE",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": 100
             },
             {
                 "name": "OBJECT",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": "AV,1"
             }
         ]
     },
@@ -918,12 +918,12 @@ export const BlockDefinitions =
             {
                 "name": "DEVICE",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": 100
             },
             {
                 "name": "OBJECT",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": "AV,1"
             }
         ]
     },
@@ -949,17 +949,17 @@ export const BlockDefinitions =
             {
                 "name": "DEVICE",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": 100
             },
             {
                 "name": "OBJECT",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": "AV,1"
             },
             {
                 "name": "PROPERTY",
                 "dataType": "INT",
-                "value": 0.0
+                "value": 85
             }
         ]
     },
@@ -1619,12 +1619,12 @@ export const BlockDefinitions =
             {
                 "name": "DEVICE",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": 100
             },
             {
                 "name": "OBJECT",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": "BV,1"
             }
         ]
     },
@@ -1650,12 +1650,12 @@ export const BlockDefinitions =
             {
                 "name": "DEVICE",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": 100
             },
             {
                 "name": "OBJECT",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": "BV,1"
             }
         ]
     },
@@ -1681,17 +1681,17 @@ export const BlockDefinitions =
             {
                 "name": "DEVICE",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": 100
             },
             {
                 "name": "OBJECT",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": "BV,1"
             },
             {
                 "name": "PROPERTY",
                 "dataType": "INT",
-                "value": 0.0
+                "value": 85
             }
         ]
     },
@@ -3739,12 +3739,12 @@ export const BlockDefinitions =
             {
                 "name": "DEVICE",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": 100
             },
             {
                 "name": "OBJECT",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": "MSV,1"
             }
         ]
     },
@@ -3770,12 +3770,12 @@ export const BlockDefinitions =
             {
                 "name": "DEVICE",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": 100
             },
             {
                 "name": "OBJECT",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": "MSV,1"
             }
         ]
     },
@@ -3827,17 +3827,17 @@ export const BlockDefinitions =
             {
                 "name": "DEVICE",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": 100
             },
             {
                 "name": "OBJECT",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": "MSV,1"
             },
             {
                 "name": "PROPERTY",
                 "dataType": "INT",
-                "value": 0.0
+                "value": 85
             }
         ]
     },
