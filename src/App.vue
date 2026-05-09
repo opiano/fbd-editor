@@ -86,6 +86,7 @@
         <div class="fbd-info-row"><label>Name:</label><input type="text" v-model="diagramInfo.name" /></div>
         <div class="fbd-info-row"><label>Desc:</label><input type="text" v-model="diagramInfo.desc" /></div>
         <div class="fbd-info-row"><label>Period:</label><input type="number" v-model="diagramInfo.period" /></div>
+        <div class="fbd-info-row"><label>RD:</label><input type="number" v-model="diagramInfo.rd" /></div>
       </div>
 
       <div class="mode-toggle-panel">
@@ -276,7 +277,7 @@ const clearScreen = () => {
   if (confirm('화면의 모든 내용을 지우시겠습니까?')) {
     elements.value = []
     nodeCounter = 0
-    diagramInfo.value = { inst: '', name: '', desc: '', period: '' }
+    diagramInfo.value = { inst: '', name: '', desc: '', period: '', rd: '' }
   }
 }
 
@@ -526,7 +527,8 @@ const diagramInfo = ref({
   inst: '',
   name: '',
   desc: '',
-  period: ''
+  period: '',
+  rd: ''
 })
 
 const showJsonModal = ref(false)
@@ -883,7 +885,8 @@ const exportDownloadInfo = () => {
     `Inst=${diagramInfo.value.inst}`,
     `Name=${diagramInfo.value.name}`,
     `Desc=${diagramInfo.value.desc}`,
-    `Period=${diagramInfo.value.period}`
+    `Period=${diagramInfo.value.period}`,
+    `RD=${diagramInfo.value.rd}`
   ]
   outputLines = [...prefixLines, ...outputLines]
 
