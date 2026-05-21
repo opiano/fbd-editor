@@ -656,6 +656,17 @@ const verifyFBD = () => {
   const data = toObject()
   const errors = []
 
+  // 왼쪽 상단 메타 정보 (Inst, Name, Period, RD) 입력 검사
+  const instVal = diagramInfo.value.inst === undefined || diagramInfo.value.inst === null ? '' : String(diagramInfo.value.inst).trim()
+  const nameVal = diagramInfo.value.name === undefined || diagramInfo.value.name === null ? '' : String(diagramInfo.value.name).trim()
+  const periodVal = diagramInfo.value.period === undefined || diagramInfo.value.period === null ? '' : String(diagramInfo.value.period).trim()
+  const rdVal = diagramInfo.value.rd === undefined || diagramInfo.value.rd === null ? '' : String(diagramInfo.value.rd).trim()
+
+  if (instVal === '') errors.push("왼쪽 상단 입력 칸의 'Inst' 값을 입력해주세요.")
+  if (nameVal === '') errors.push("왼쪽 상단 입력 칸의 'Name' 값을 입력해주세요.")
+  if (periodVal === '') errors.push("왼쪽 상단 입력 칸의 'Period' 값을 입력해주세요.")
+  if (rdVal === '') errors.push("왼쪽 상단 입력 칸의 'RD' 값을 입력해주세요.")
+
   // 0. ID 중복 검사
   const idMap = new Map()
   const allElements = [...(data.nodes || []), ...(data.edges || [])]
@@ -746,11 +757,7 @@ const exportJson = () => {
 }
 
 // 4.5. Download Info 데이터 추출
-const exportDownloadInfo = () => {
-  if (!isVerified.value) {
-    alert("아직 FBD 검증이 완료되지 않았습니다.\n먼저 'FBD 검증' 버튼을 눌러주세요.")
-    return
-  }
+const generateMetaInfoText = () => {
   const data = getProcessedData()
   let outputLines = []
 
@@ -789,8 +796,6 @@ const exportDownloadInfo = () => {
           const paramValues = node.data.parameters.map(p => p.value !== undefined && p.value !== null ? p.value : '').join(',')
           nodeContent += `,"${paramValues}"`
         }
-
-
       }
 
       outputLines.push(`${id},${nodeType}=${nodeContent}`)
@@ -884,19 +889,32 @@ const exportDownloadInfo = () => {
   const prefixLines = [
     `Inst=${diagramInfo.value.inst}`,
     `Name=${diagramInfo.value.name}`,
-    `Desc=${diagramInfo.value.desc}`,
+  ]
+  const descVal = diagramInfo.value.desc === undefined || diagramInfo.value.desc === null ? '' : String(diagramInfo.value.desc).trim()
+  if (descVal !== '') {
+    prefixLines.push(`Desc=${diagramInfo.value.desc}`)
+  }
+  prefixLines.push(
     `Period=${diagramInfo.value.period}`,
     `RD=${diagramInfo.value.rd}`
-  ]
+  )
   outputLines = [...prefixLines, ...outputLines]
 
-  downloadOutput.value = outputLines.map(line => {
+  return outputLines.map(line => {
     const eqIndex = line.indexOf('=')
     if (eqIndex !== -1) {
       return line.slice(0, eqIndex).toUpperCase() + line.slice(eqIndex)
     }
     return line
   }).join('\n')
+}
+
+const exportDownloadInfo = () => {
+  if (!isVerified.value) {
+    alert("아직 FBD 검증이 완료되지 않았습니다.\n먼저 'FBD 검증' 버튼을 눌러주세요.")
+    return
+  }
+  downloadOutput.value = generateMetaInfoText()
   ddcModalX.value = 0
   ddcModalY.value = 0
   showDownloadModal.value = true
@@ -930,6 +948,16 @@ const downloadFile = () => {
   a.download = `fbd-${instValue}${nameValue}.json`
   a.click()
   URL.revokeObjectURL(url)
+
+  // 2. META INFO TXT 파일 저장
+  const metaText = generateMetaInfoText()
+  const txtBlob = new Blob([metaText], { type: 'text/plain;charset=utf-8' })
+  const txtUrl = URL.createObjectURL(txtBlob)
+  const txtLink = document.createElement('a')
+  txtLink.href = txtUrl
+  txtLink.download = `fbd-${instValue}${nameValue}.txt`
+  txtLink.click()
+  URL.revokeObjectURL(txtUrl)
 }
 
 const triggerFileUpload = () => {
