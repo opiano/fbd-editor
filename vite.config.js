@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/fbd-editor/',
+  base: process.env.VERCEL ? '/' : '/fbd-editor/',
   plugins: [vue()],
 })
 
