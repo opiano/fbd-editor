@@ -5,42 +5,42 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
       </div>
       <h2>FBD Editor</h2>
-      <p class="login-subtitle">접근 권한이 필요합니다.</p>
+      <p class="login-subtitle">Access authorization is required.</p>
       
       <div class="input-group">
-        <input type="text" v-model="loginId" placeholder="아이디" @keyup.enter="handleLogin" autocomplete="username" />
+        <input type="text" v-model="loginId" placeholder="Username" @keyup.enter="handleLogin" autocomplete="username" />
       </div>
       <div class="input-group">
-        <input type="password" v-model="loginPw" placeholder="비밀번호" @keyup.enter="handleLogin" autocomplete="current-password" />
+        <input type="password" v-model="loginPw" placeholder="Password" @keyup.enter="handleLogin" autocomplete="current-password" />
       </div>
       
       <div v-if="loginError" class="login-error">{{ loginError }}</div>
       
-      <button @click="handleLogin" class="login-btn">로그인</button>
+      <button @click="handleLogin" class="login-btn">Login</button>
     </div>
   </div>
 
   <div v-else class="editor-container">
     <aside class="sidebar">
       <div class="toolbar-actions">
-        <button class="icon-btn" style="color: #dc3545;" title="빈 화면으로 초기화" @click="clearScreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></button>
-        <button class="icon-btn" style="color: #17a2b8;" title="파일 불러오기" @click="triggerFileUpload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2 2h4a2 2 0 0 1 2 2v1M5 19h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2z"></path></svg></button>
-        <button class="icon-btn" style="color: #007bff;" title="파일로 저장" @click="downloadFile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
-        <button class="icon-btn" style="color: #ffc107;" title="FBD 검증" @click="verifyFBD"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></button>
-        <button class="icon-btn" style="color: #6f42c1;" title="META INFO 확인" @click="exportDownloadInfo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
+        <button class="icon-btn" style="color: #dc3545;" title="Clear Screen" @click="clearScreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></button>
+        <button class="icon-btn" style="color: #17a2b8;" title="Load File" @click="triggerFileUpload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2 2h4a2 2 0 0 1 2 2v1M5 19h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2z"></path></svg></button>
+        <button class="icon-btn" style="color: #007bff;" title="Save File" @click="downloadFile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
+        <button class="icon-btn" style="color: #ffc107;" title="Verify FBD" @click="verifyFBD"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></button>
+        <button class="icon-btn" style="color: #6f42c1;" title="Check META INFO" @click="exportDownloadInfo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
       </div>
       <hr style="margin-bottom:15px;" />
 
       <div class="var-toolbar-actions">
-        <button class="icon-btn var-btn" title="Input 블록 추가" @click="addNode({ type: 'Input', category: 'input', inputs: [], outputs: ['OUT'] })">
+        <button class="icon-btn var-btn" title="Add Input Block" @click="addNode({ type: 'Input', category: 'input', inputs: [], outputs: ['OUT'] })">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="4" width="8" height="16" rx="1" /><path d="M2 12h10"/><path d="m8 8 4 4-4 4"/></svg>
           <span>IN</span>
         </button>
-        <button class="icon-btn var-btn" title="Constant 블록 추가" @click="addNode({ type: 'Constant', category: 'constant', inputs: [], outputs: ['OUT'] })">
+        <button class="icon-btn var-btn" title="Add Constant Block" @click="addNode({ type: 'Constant', category: 'constant', inputs: [], outputs: ['OUT'] })">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="12" height="16" rx="2" ry="2"></rect><path d="M16 12h6"></path><path d="M8 9l2 -2v8"></path></svg>
           <span>C</span>
         </button>
-        <button class="icon-btn var-btn" title="사용자 정의 펑션 블록 추가" @click="openUdfbModal">
+        <button class="icon-btn var-btn" title="Add User Defined Function Block" @click="openUdfbModal">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="16" rx="2" ry="2"></rect><path d="M2 8h4"></path><path d="M2 16h4"></path><path d="M18 12h4"></path></svg>
           <span>UDFB</span>
         </button>
@@ -90,8 +90,8 @@
       </div>
 
       <div class="mode-toggle-panel">
-        <button :class="{ active: currentMode === 'setting' }" @click="setMode('setting')">설정 모드</button>
-        <button :class="{ active: currentMode === 'monitoring' }" @click="setMode('monitoring')">모니터링 모드</button>
+        <button :class="{ active: currentMode === 'setting' }" @click="setMode('setting')">Setting Mode</button>
+        <button :class="{ active: currentMode === 'monitoring' }" @click="setMode('monitoring')">Monitoring Mode</button>
       </div>
 
       <VueFlow v-model="elements" :node-types="nodeTypes" :fit-view-on-init="true">
@@ -139,20 +139,20 @@
     <!-- JSON 모달 팝업 추가 -->
     <div v-if="showJsonModal" class="modal-overlay" @click.self="showJsonModal = false">
       <div class="modal-content">
-        <h3>JSON 데이터</h3>
+        <h3>JSON Data</h3>
         <textarea readonly :value="jsonOutput" class="json-textarea"></textarea>
-        <button class="close-btn" @click="showJsonModal = false">닫기</button>
+        <button class="close-btn" @click="showJsonModal = false">Close</button>
       </div>
     </div>
 
     <!-- META INFO 모달 팝업 추가 -->
     <div v-if="showDownloadModal" class="modal-overlay" style="background: rgba(0, 0, 0, 0.1);" @click.self="closeDownloadModal">
       <div class="modal-content" :style="{ transform: `translate(${ddcModalX}px, ${ddcModalY}px)` }">
-        <h3 @mousedown="startDragDdc" style="cursor: grab; user-select: none;">META INFO <span style="font-size: 0.6em; font-weight: normal; color: #666;">(드래그하여 이동)</span></h3>
+        <h3 @mousedown="startDragDdc" style="cursor: grab; user-select: none;">META INFO <span style="font-size: 0.6em; font-weight: normal; color: #666;">(Drag to move)</span></h3>
         <textarea readonly :value="downloadOutput" class="json-textarea"></textarea>
         <div class="modal-actions">
-          <button class="copy-btn" @click="copyToClipboard(downloadOutput)">복사</button>
-          <button class="close-btn" @click="closeDownloadModal">닫기</button>
+          <button class="copy-btn" @click="copyToClipboard(downloadOutput)">Copy</button>
+          <button class="close-btn" @click="closeDownloadModal">Close</button>
         </div>
       </div>
     </div>
@@ -183,15 +183,15 @@
     <!-- 제어기 IP 모달 팝업 추가 -->
     <div v-if="showMqttIpModal" class="modal-overlay" @click.self="showMqttIpModal = false">
       <div class="modal-content" style="width: 380px; max-width: 90vw;">
-        <h3>제어기 IP 주소</h3>
-        <p style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">모니터링 데이터를 가져올 제어기의 IP 주소를 입력해주세요.</p>
+        <h3>Controller IP Address</h3>
+        <p style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">Please enter the IP address of the controller to fetch monitoring data.</p>
         <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
-          <label style="font-weight:bold; white-space: nowrap;">제어기 IP:</label>
-          <input type="text" v-model="mqttBrokerIp" placeholder="예: 192.168.0.100" style="width:240px; padding:6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" @keyup.enter="confirmMqttIp" />
+          <label style="font-weight:bold; white-space: nowrap;">Controller IP:</label>
+          <input type="text" v-model="mqttBrokerIp" placeholder="e.g. 192.168.0.100" style="width:240px; padding:6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" @keyup.enter="confirmMqttIp" />
         </div>
         <div class="modal-actions" style="justify-content: flex-end; gap: 10px;">
-          <button style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" @click="cancelMqttIp">취소</button>
-          <button style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" @click="confirmMqttIp">연결</button>
+          <button style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" @click="cancelMqttIp">Cancel</button>
+          <button style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" @click="confirmMqttIp">Connect</button>
         </div>
       </div>
     </div>
@@ -238,7 +238,7 @@ const handleLogin = () => {
     isAuthenticated.value = true
     loginError.value = ''
   } else {
-    loginError.value = '아이디 또는 비밀번호가 일치하지 않습니다.'
+    loginError.value = 'Invalid username or password.'
   }
 }
 
@@ -274,7 +274,7 @@ onEdgesChange(() => { isVerified.value = false })
 let nodeCounter = 0 // 노드의 생성 순서를 저장할 카운터 변수
 
 const clearScreen = () => {
-  if (confirm('화면의 모든 내용을 지우시겠습니까?')) {
+  if (confirm('Are you sure you want to clear all contents of the screen?')) {
     elements.value = []
     nodeCounter = 0
     diagramInfo.value = { inst: '', name: '', desc: '', period: '', rd: '' }
@@ -412,9 +412,14 @@ const mqttBrokerIp = ref('')
 
 const setMode = (mode) => {
   if (mode === 'monitoring') {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     const savedIp = localStorage.getItem('mqttBrokerIp')
-    if (savedIp && !mqttBrokerIp.value) {
+    if (savedIp) {
       mqttBrokerIp.value = savedIp
+    } else if (!isLocalhost) {
+      mqttBrokerIp.value = window.location.hostname
+    } else {
+      mqttBrokerIp.value = ''
     }
     showMqttIpModal.value = true
   } else {
@@ -435,7 +440,7 @@ const cancelMqttIp = () => {
 
 const confirmMqttIp = () => {
   if (!mqttBrokerIp.value.trim()) {
-    alert("IP 주소를 입력해주세요.")
+    alert("Please enter the IP address.")
     return
   }
   localStorage.setItem('mqttBrokerIp', mqttBrokerIp.value.trim())
@@ -507,8 +512,13 @@ watch(selectedNode, (newVal) => {
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   const savedIp = localStorage.getItem('mqttBrokerIp')
-  if (savedIp) mqttBrokerIp.value = savedIp
+  if (savedIp) {
+    mqttBrokerIp.value = savedIp
+  } else if (!isLocalhost) {
+    mqttBrokerIp.value = window.location.hostname
+  }
 })
 
 onUnmounted(() => {
@@ -651,21 +661,21 @@ const getProcessedData = () => {
   return data
 }
 
-// FBD 유효성 검증
+// FBD Validation
 const verifyFBD = () => {
   const data = toObject()
   const errors = []
 
-  // 왼쪽 상단 메타 정보 (Inst, Name, Period, RD) 입력 검사
+  // 메타 정보 입력 검사
   const instVal = diagramInfo.value.inst === undefined || diagramInfo.value.inst === null ? '' : String(diagramInfo.value.inst).trim()
   const nameVal = diagramInfo.value.name === undefined || diagramInfo.value.name === null ? '' : String(diagramInfo.value.name).trim()
   const periodVal = diagramInfo.value.period === undefined || diagramInfo.value.period === null ? '' : String(diagramInfo.value.period).trim()
   const rdVal = diagramInfo.value.rd === undefined || diagramInfo.value.rd === null ? '' : String(diagramInfo.value.rd).trim()
 
-  if (instVal === '') errors.push("왼쪽 상단 입력 칸의 'Inst' 값을 입력해주세요.")
-  if (nameVal === '') errors.push("왼쪽 상단 입력 칸의 'Name' 값을 입력해주세요.")
-  if (periodVal === '') errors.push("왼쪽 상단 입력 칸의 'Period' 값을 입력해주세요.")
-  if (rdVal === '') errors.push("왼쪽 상단 입력 칸의 'RD' 값을 입력해주세요.")
+  if (instVal === '') errors.push("Please enter the 'Inst' value in the top-left input field.")
+  if (nameVal === '') errors.push("Please enter the 'Name' value in the top-left input field.")
+  if (periodVal === '') errors.push("Please enter the 'Period' value in the top-left input field.")
+  if (rdVal === '') errors.push("Please enter the 'RD' value in the top-left input field.")
 
   // 0. ID 중복 검사
   const idMap = new Map()
@@ -673,7 +683,7 @@ const verifyFBD = () => {
   allElements.forEach(el => {
     const idToCheck = String(el.data?.id ?? el.id)
     if (idMap.has(idToCheck)) {
-      errors.push(`구성 요소의 ID가 중복되었습니다. (중복 ID: ${idToCheck})`)
+      errors.push(`Duplicate component ID found. (Duplicate ID: ${idToCheck})`)
     } else {
       idMap.set(idToCheck, true)
     }
@@ -690,11 +700,11 @@ const verifyFBD = () => {
       
       if (valStr === '') {
         const typeName = isInput ? 'Input' : 'Constant'
-        errors.push(`[${node.data.id ?? node.id}] ${node.data.label} 블록(${typeName})의 값을 입력해주세요.`)
+        errors.push(`[${node.data.id ?? node.id}] Please enter a value for the ${node.data.label} block (${typeName}).`)
       } else if (isInput) {
         const formatRegex = /^\s*[+-]?\d+(?:\.\d+)?\s*,\s*[^,]+\s*,\s*[+-]?\d+(?:\.\d+)?\s*$/
         if (!formatRegex.test(valStr)) {
-          errors.push(`[${node.data.id ?? node.id}] ${node.data.label} 블록(Input)의 입력값 형식이 올바르지 않습니다. (형식: 숫자,문자,숫자)`)
+          errors.push(`[${node.data.id ?? node.id}] Invalid input value format for ${node.data.label} block (Input). (Format: number,string,number)`)
         }
       }
     }
@@ -704,7 +714,7 @@ const verifyFBD = () => {
   const fbNodes = data.nodes.filter(node => node.data && node.data.category !== 'input' && node.data.category !== 'constant')
 
   if (fbNodes.length === 0) {
-    errors.push("펑션 블록(FB)이 최소 1개 이상 배치되어야 합니다.")
+    errors.push("At least one Function Block (FB) must be placed.")
   }
 
   fbNodes.forEach(fb => {
@@ -713,9 +723,9 @@ const verifyFBD = () => {
         const connectedEdges = data.edges.filter(edge => String(edge.target) === String(fb.id) && edge.targetHandle === inputName)
 
         if (connectedEdges.length === 0) {
-          errors.push(`[${fb.data.id ?? fb.id}] ${fb.data.label} 블록의 '${inputName}' 포트가 연결되지 않았습니다.`)
+          errors.push(`[${fb.data.id ?? fb.id}] The '${inputName}' port of the ${fb.data.label} block is not connected.`)
         } else if (connectedEdges.length > 1) {
-          errors.push(`[${fb.data.id ?? fb.id}] ${fb.data.label} 블록의 '${inputName}' 포트에 2개 이상의 소스가 연결되었습니다.`)
+          errors.push(`[${fb.data.id ?? fb.id}] Multiple sources are connected to the '${inputName}' port of the ${fb.data.label} block.`)
         }
       })
     }
@@ -723,7 +733,7 @@ const verifyFBD = () => {
 
   if (errors.length > 0) {
     isVerified.value = false
-    alert("FBD 검증 실패:\n\n" + errors.join("\n"))
+    alert("FBD Validation Failed:\n\n" + errors.join("\n"))
   } else {
     isVerified.value = true
     
@@ -739,16 +749,16 @@ const verifyFBD = () => {
     })
 
     const linkCount = data.edges ? data.edges.length : 0
-    const summary = `- Input: ${inputCount}개\n- Constant: ${constantCount}개\n- FB: ${fbCount}개\n- Link: ${linkCount}개`
+    const summary = `- Input: ${inputCount} units\n- Constant: ${constantCount} units\n- FB: ${fbCount} units\n- Link: ${linkCount} connections`
 
-    alert(`FBD 검증 완료!\n\n모든 펑션 블록이 정상적으로 연결되어 있습니다.\n\n[구성 요소 정보]\n${summary}`)
+    alert(`FBD Validation Completed!\n\nAll Function Blocks are connected properly.\n\n[Component Summary]\n${summary}`)
   }
 }
 
-// 4. JSON 데이터 추출
+// 4. Extract JSON Data
 const exportJson = () => {
   if (!isVerified.value) {
-    alert("아직 FBD 검증이 완료되지 않았습니다.\n먼저 'FBD 검증' 버튼을 눌러주세요.")
+    alert("FBD validation is not completed yet.\nPlease click the 'Verify FBD' button first.")
     return
   }
   const data = getProcessedData()
@@ -911,7 +921,7 @@ const generateMetaInfoText = () => {
 
 const exportDownloadInfo = () => {
   if (!isVerified.value) {
-    alert("아직 FBD 검증이 완료되지 않았습니다.\n먼저 'FBD 검증' 버튼을 눌러주세요.")
+    alert("FBD validation is not completed yet.\nPlease click the 'Verify FBD' button first.")
     return
   }
   downloadOutput.value = generateMetaInfoText()
@@ -923,19 +933,19 @@ const exportDownloadInfo = () => {
 const copyToClipboard = async (text) => {
   try {
     await navigator.clipboard.writeText(text)
-    alert('클립보드에 복사되었습니다.')
+    alert('Copied to clipboard.')
   } catch (err) {
-    alert('복사에 실패했습니다.')
+    alert('Failed to copy.')
     console.error(err)
   }
 }
 
-// 5. 파일 저장 및 불러오기
+// 5. Save and Load Files
 const fileInput = ref(null)
 
 const downloadFile = () => {
   if (!isVerified.value) {
-    alert("아직 FBD 검증이 완료되지 않았습니다.\n먼저 'FBD 검증' 버튼을 눌러주세요.")
+    alert("FBD validation is not completed yet.\nPlease click the 'Verify FBD' button first.")
     return
   }
   const data = getProcessedData()
@@ -1004,10 +1014,10 @@ const handleFileUpload = (event) => {
         })
         nodeCounter = maxId + 1
       } else {
-        alert('지원하지 않는 파일 형식입니다. (nodes나 edges가 없습니다)')
+        alert('Unsupported file format. (No nodes or edges found)')
       }
     } catch (err) {
-      alert('파일을 읽는 도중 오류가 발생했습니다.')
+      alert('An error occurred while reading the file.')
       console.error(err)
     }
     event.target.value = ''
