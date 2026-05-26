@@ -1,0 +1,505 @@
+#include <mosquitto.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+
+// 브로커 설정 (라즈베리파이 내부 로컬 접속)
+#define MQTT_HOST "127.0.0.1"
+#define MQTT_PORT 1883
+#define MQTT_KEEP_ALIVE 60
+
+// 웹에서 요청한 타입만 추적하기 위한 플래그 배열 (오리지널 사양: 전부 false로 시작)
+// AI, AO, AV, BI, BO, BV, MSV, DEV, CAL, SCH, TLOG, FBD (총 12개)
+bool active_types[12] = {false, false, false, false, false, false, false, false, false, false, false, false};
+const char *types[] = {"AI", "AO", "AV", "BI", "BO", "BV", "MSV", "DEV", "CAL", "SCH", "TLOG", "FBD"};
+const int num_types = 12;
+
+int get_type_index(const char *type) {
+  for (int i = 0; i < num_types; i++) {
+    if (strcmp(types[i], type) == 0)
+      return i;
+  }
+  return -1;
+}
+
+// -0.5 ~ +0.5 사이의 랜덤 실수를 반환하는 헬퍼 함수
+double get_random_offset() {
+  return ((double)rand() / (double)RAND_MAX) - 0.5;
+}
+
+// Global variables to store previous CPU stat
+static unsigned long long prev_total = 0;
+static unsigned long long prev_idle = 0;
+
+int get_cpu_usage() {
+  FILE *fp = fopen("/proc/stat", "r");
+  if (!fp)
+    return 0;
+
+  char buffer[1024];
+  if (!fgets(buffer, sizeof(buffer), fp)) {
+    fclose(fp);
+    return 0;
+  }
+  fclose(fp);
+
+  unsigned long long user, nice, system, idle, iowait_val, irq, softirq, steal;
+  if (sscanf(buffer, "cpu %llu %llu %llu %llu %llu %llu %llu %llu", &user,
+             &nice, &system, &idle, &iowait_val, &irq, &softirq, &steal) < 8) {
+    return 0;
+  }
+
+  unsigned long long total_idle = idle + iowait_val;
+  unsigned long long total_non_idle =
+      user + nice + system + irq + softirq + steal;
+  unsigned long long total = total_idle + total_non_idle;
+
+  int usage = 0;
+  if (prev_total != 0) {
+    unsigned long long total_diff = total - prev_total;
+    unsigned long long idle_diff = total_idle - prev_idle;
+    if (total_diff > 0) {
+      usage = (int)(((total_diff - idle_diff) * 100) / total_diff);
+    }
+  }
+
+  prev_total = total;
+  prev_idle = total_idle;
+
+  return usage;
+}
+
+int get_memory_usage() {
+  FILE *fp = fopen("/proc/meminfo", "r");
+  if (!fp)
+    return 0;
+
+  char buffer[256];
+  unsigned long long mem_total = 0, mem_available = 0, mem_free = 0,
+                     buffers = 0, cached = 0;
+
+  while (fgets(buffer, sizeof(buffer), fp)) {
+    if (strncmp(buffer, "MemTotal:", 9) == 0) {
+      sscanf(buffer, "MemTotal: %llu", &mem_total);
+    } else if (strncmp(buffer, "MemAvailable:", 13) == 0) {
+      sscanf(buffer, "MemAvailable: %llu", &mem_available);
+    } else if (strncmp(buffer, "MemFree:", 8) == 0) {
+      sscanf(buffer, "MemFree: %llu", &mem_free);
+    } else if (strncmp(buffer, "Buffers:", 8) == 0) {
+      sscanf(buffer, "Buffers: %llu", &buffers);
+    } else if (strncmp(buffer, "Cached:", 7) == 0) {
+      sscanf(buffer, "Cached: %llu", &cached);
+    }
+  }
+  fclose(fp);
+
+  if (mem_total == 0)
+    return 0;
+
+  unsigned long long used = 0;
+  if (mem_available > 0) {
+    used = mem_total - mem_available;
+  } else {
+    used = mem_total - (mem_free + buffers + cached);
+  }
+
+  return (int)((used * 100) / mem_total);
+}
+
+double get_cpu_temperature() {
+  FILE *fp = fopen("/sys/class/thermal/thermal_zone0/temp", "r");
+  if (!fp) {
+    // Return a simulated temperature between 45.0°C and 70.0°C
+    static double sim_temp = 45.0;
+    sim_temp += ((rand() % 20) - 10) / 10.0;
+    if (sim_temp < 35.0) sim_temp = 35.0;
+    if (sim_temp > 75.0) sim_temp = 75.0;
+    return sim_temp;
+  }
+  long temp_raw = 0;
+  if (fscanf(fp, "%ld", &temp_raw) != 1) {
+    temp_raw = 0;
+  }
+  fclose(fp);
+  if (temp_raw > 0) {
+    return temp_raw / 1000.0;
+  }
+  return 45.0;
+}
+
+// 브로커 접속 완료 시 호출되는 콜백 함수
+void on_connect(struct mosquitto *mosq, void *obj, int rc) {
+  if (rc == 0) {
+    printf("✅ 브로커에 성공적으로 연결되었습니다.\n");
+    // 요청 및 제어 토픽 구독
+    mosquitto_subscribe(mosq, NULL, "bacnet/request/#", 0);
+    mosquitto_subscribe(mosq, NULL, "bacnet/command/#", 0);
+    printf("📡 웹 요청(subscribe/unsubscribe) 및 제어(write) 토픽 수신 대기 중...\n");
+  } else {
+    printf("❌ 연결 실패, 반환 코드: %d\n", rc);
+  }
+}
+
+// 메시지 수신 시 호출되는 콜백 함수
+void on_message(struct mosquitto *mosq, void *obj,
+                const struct mosquitto_message *msg) {
+  // 1. 데이터 구독 요청 처리
+  if (strncmp(msg->topic, "bacnet/request/subscribe/", 25) == 0) {
+    const char *type = msg->topic + 25;
+    int idx = get_type_index(type);
+    if (idx >= 0) {
+      active_types[idx] = true;
+      printf("▶️  웹 요청 수신: [%s] 데이터 전송 시작\n", type);
+    }
+  }
+  // 2. 데이터 구독 해제 요청 처리
+  else if (strncmp(msg->topic, "bacnet/request/unsubscribe/", 27) == 0) {
+    const char *type = msg->topic + 27;
+    int idx = get_type_index(type);
+    if (idx >= 0) {
+      active_types[idx] = false;
+      printf("⏸  웹 요청 수신: [%s] 데이터 전송 중지\n", type);
+    }
+  }
+  // 3. 제어(Write) 명령 처리
+  else if (strncmp(msg->topic, "bacnet/command/write/", 21) == 0) {
+    // 토픽 형식: bacnet/command/write/<TYPE>/<ID>
+    const char *path = msg->topic + 21;
+    char type[16] = {0};
+    char id[32] = {0};
+
+    // type과 id 추출
+    if (sscanf(path, "%15[^/]/%31s", type, id) == 2) {
+      // 페이로드 파싱 (형식: "value,priority")
+      if (msg->payloadlen > 0) {
+        char payload_str[256] = {0};
+        snprintf(payload_str, sizeof(payload_str), "%.*s", msg->payloadlen,
+                 (char *)msg->payload);
+
+        char value[128] = {0};
+        int priority = 0; // BACnet 우선순위 (1~16, 0이면 생략 등)
+
+        if (sscanf(payload_str, "%[^,],%d", value, &priority) >= 1) {
+          printf("\n⚡ [제어 명령 수신] 대상: %s:%s | 변경 값(Present Value): %s | 우선순위(Priority): %d\n\n",
+                 type, id, value, priority);
+        } else {
+          printf("⚠️ 제어 페이로드 파싱 실패: %s\n", payload_str);
+        }
+      }
+    }
+  }
+}
+
+// Publish 완료 시 호출되는 콜백 함수
+void on_publish(struct mosquitto *mosq, void *obj, int mid) {
+  // printf("📨 메시지(ID: %d) 전송 완료.\n", mid);
+}
+
+int main() {
+  struct mosquitto *mosq = NULL;
+  int rc;
+
+  // FBD 실시간 모니터 시뮬레이션용 독자 상태 값 초기화
+  double fbd_node0_in = 15.5;
+  double fbd_node0_out = 12.0;
+  double fbd_node1_in = 10.0;
+  double fbd_node1_out = 50.0;
+  double fbd_node2_in0 = 0.0;
+  double fbd_node2_in1 = 1.0;
+  double fbd_node2_out = 1.0;
+
+  time_t boot_time = time(NULL);
+  char boot_time_str[64];
+  strftime(boot_time_str, sizeof(boot_time_str), "%Y-%m-%d %H:%M:%S",
+           localtime(&boot_time));
+
+  // 난수 생성 초기화
+  srand(time(NULL));
+
+  // 1. Mosquitto 라이브러리 초기화
+  mosquitto_lib_init();
+
+  // 2. 새 클라이언트 인스턴스 생성 (true = clean session)
+  mosq = mosquitto_new("bacnet_c_publisher", true, NULL);
+  if (!mosq) {
+    fprintf(stderr, "오류: 메모리 할당 실패.\n");
+    return 1;
+  }
+
+  // 콜백 함수 등록
+  mosquitto_connect_callback_set(mosq, on_connect);
+  mosquitto_publish_callback_set(mosq, on_publish);
+  mosquitto_message_callback_set(mosq, on_message);
+
+  // 3. 브로커 연결
+  rc = mosquitto_connect(mosq, MQTT_HOST, MQTT_PORT, MQTT_KEEP_ALIVE);
+  if (rc != MOSQ_ERR_SUCCESS) {
+    fprintf(stderr, "연결할 수 없습니다: %s\n", mosquitto_strerror(rc));
+    return 1;
+  }
+
+  // 백그라운드 스레드 시작 (자동으로 네트워크 패킷 송수신/Ping 처리)
+  mosquitto_loop_start(mosq);
+
+  // 4. 무한 루프
+  int cycle = 0;
+
+  while (1) {
+    // -------------------------------------------------------------------------
+    // [파트 A] 기존 소스의 BACnet 객체 감시 서비스 (오리지널 사양 그대로 보존)
+    // -------------------------------------------------------------------------
+    for (int t = 0; t < num_types; t++) {
+      if (active_types[t]) {
+        char payload[32768];
+
+        if (strcmp(types[t], "DEV") == 0) {
+          int cpu = get_cpu_usage();
+          int mem = get_memory_usage();
+          double cpu_temp = get_cpu_temperature();
+          time_t now = time(NULL);
+          char sys_time_str[64];
+          strftime(sys_time_str, sizeof(sys_time_str), "%Y-%m-%d %H:%M:%S",
+                   localtime(&now));
+          long uptime = (long)difftime(now, boot_time);
+
+          const char *ev1_ts = "2026-05-09 14:02:45";
+          const char *ev1_state = "Warning";
+          const char *ev1_name = "High Temp AHU-01";
+          const char *ev1_id = "Node-04";
+
+          const char *ev2_ts = "2026-05-09 13:58:12";
+          const char *ev2_state = "Info";
+          const char *ev2_name = "System Backup Completed";
+          const char *ev2_id = "Master-Ctrl";
+
+          const char *ev3_ts = "2026-05-09 13:45:33";
+          const char *ev3_state = "Critical";
+          const char *ev3_name = "Loss of Communication - Floor 4";
+          const char *ev3_id = "Router-F4";
+
+          const char *ev4_ts = "2026-05-09 13:30:01";
+          const char *ev4_state = "Info";
+          const char *ev4_name = "Scheduled Lighting Override: Active";
+          const char *ev4_id = "Node-04";
+
+          const char *ev5_ts = "2026-05-09 13:15:00";
+          const char *ev5_state = "Normal";
+          const char *ev5_name = "System Startup";
+          const char *ev5_id = "Master-Ctrl";
+
+          char events_json[2048];
+          snprintf(events_json, sizeof(events_json),
+                   "["
+                   "{\"timestamp\":\"%s\",\"eventState\":\"%s\",\"objectName\":"
+                   "\"%s\",\"objectId\":\"%s\"},"
+                   "{\"timestamp\":\"%s\",\"eventState\":\"%s\",\"objectName\":"
+                   "\"%s\",\"objectId\":\"%s\"},"
+                   "{\"timestamp\":\"%s\",\"eventState\":\"%s\",\"objectName\":"
+                   "\"%s\",\"objectId\":\"%s\"},"
+                   "{\"timestamp\":\"%s\",\"eventState\":\"%s\",\"objectName\":"
+                   "\"%s\",\"objectId\":\"%s\"},"
+                   "{\"timestamp\":\"%s\",\"eventState\":\"%s\",\"objectName\":"
+                   "\"%s\",\"objectId\":\"%s\"}"
+                   "]",
+                   ev1_ts, ev1_state, ev1_name, ev1_id, ev2_ts, ev2_state,
+                   ev2_name, ev2_id, ev3_ts, ev3_state, ev3_name, ev3_id,
+                   ev4_ts, ev4_state, ev4_name, ev4_id, ev5_ts, ev5_state,
+                   ev5_name, ev5_id);
+
+          const char *bacnet_instance = "Device-100";
+          const char *system_status = "Normal";
+          int total_objects = 1248;
+          int modules = 42;
+          int active_alarms = 3;
+          const char *hostname = "DDC";
+
+          snprintf(payload, sizeof(payload),
+                   "{\"bacnetInstance\":\"%s\",\"systemStatus\":\"%s\","
+                   "\"totalObjects\":%d,\"modules\":%d,\"activeAlarms\":%d,"
+                   "\"cpuUsage\":%d,\"memoryUsage\":%d,\"cpuTemp\":%.1f,\"hostname\":\"%s\","
+                   "\"systemTime\":\"%s\",\"uptime\":%ld,\"bootTime\":\"%s\","
+                   "\"events\":%s}",
+                   bacnet_instance, system_status, total_objects, modules,
+                   active_alarms, cpu, mem, cpu_temp, hostname, sys_time_str, uptime,
+                   boot_time_str, events_json);
+        } else {
+          strcpy(payload, "[");
+
+          for (int i = 1; i <= 100; i++) {
+            char obj[256];
+
+            if (strcmp(types[t], "AI") == 0 || strcmp(types[t], "AO") == 0 ||
+                strcmp(types[t], "AV") == 0) {
+              int id = i;
+              char name[64];
+              snprintf(name, sizeof(name), "Analog Node %d", i);
+              const char *port = "MSTP:1";
+              float pv = 20.0 + (i * 0.1) + (cycle * 0.5);
+              const char *units = "°C";
+              const char *sts = (i % 15 == 0) ? "Alarm" : "Normal";
+              const char *rel = "No Fault";
+              const char *oos = (i % 20 == 0) ? "true" : "false";
+              int pri = (i % 5 == 0) ? 8 : 16;
+
+              snprintf(obj, sizeof(obj),
+                       "{\"id\":\"%s:%d\",\"name\":\"%s\",\"port\":\"%s\","
+                       "\"pv\":%.1f,\"units\":\"%s\",\"sts\":\"%s\",\"rel\":\"%"
+                       "s\",\"oos\":%s,\"pri\":%d}%s",
+                       types[t], id, name, port, pv, units, sts, rel, oos, pri,
+                       (i == 100) ? "" : ",");
+            } else if (strcmp(types[t], "BI") == 0 ||
+                       strcmp(types[t], "BO") == 0 ||
+                       strcmp(types[t], "BV") == 0) {
+              int id = i;
+              char name[64];
+              snprintf(name, sizeof(name), "Binary Node %d", i);
+              const char *port = "MSTP:1";
+              const char *pv = ((i + cycle) % 2 == 0) ? "Active" : "Inactive";
+              const char *sts = (i % 15 == 0) ? "FAULT" : "NORMAL";
+              const char *rel = "No Fault";
+              const char *oos = (i % 20 == 0) ? "true" : "false";
+              int pri = (i % 5 == 0) ? 8 : 16;
+
+              snprintf(
+                  obj, sizeof(obj),
+                  "{\"id\":\"%s:%d\",\"name\":\"%s\",\"port\":\"%s\",\"pv\":\"%"
+                  "s\",\"sts\":\"%s\",\"rel\":\"%s\",\"oos\":%s,\"pri\":%d}%s",
+                  types[t], id, name, port, pv, sts, rel, oos, pri,
+                  (i == 100) ? "" : ",");
+            } else if (strcmp(types[t], "MSV") == 0) {
+              int id = i;
+              char name[64];
+              snprintf(name, sizeof(name), "MultiState Node %d", i);
+              const char *port = "MSTP:1";
+              int pv = ((i + cycle) % 4) + 1;
+              int states = 4;
+              const char *sts = (i % 15 == 0) ? "FAULT" : "NORMAL";
+              const char *rel = "No Fault";
+              const char *oos = (i % 20 == 0) ? "true" : "false";
+              int pri = (i % 5 == 0) ? 8 : 16;
+
+              snprintf(obj, sizeof(obj),
+                       "{\"id\":\"%s:%d\",\"name\":\"%s\",\"port\":\"%s\","
+                       "\"pv\":%d,\"states\":%d,\"sts\":\"%s\",\"rel\":\"%s\","
+                       "\"oos\":%s,\"pri\":%d}%s",
+                       types[t], id, name, port, pv, states, sts, rel, oos, pri,
+                       (i == 100) ? "" : ",");
+            } else if (strcmp(types[t], "CAL") == 0) {
+              int id = i;
+              char name[64];
+              snprintf(name, sizeof(name), "Calendar Node %d", i);
+              int totalEntries = (i * 3) % 20;
+              const char *pv = (i % 2 == 0) ? "True" : "False";
+
+              snprintf(obj, sizeof(obj),
+                       "{\"id\":\"%s:%d\",\"name\":\"%s\",\"totalEntries\":%d,\"pv\":\"%s\"}%s",
+                       types[t], id, name, totalEntries, pv, (i == 100) ? "" : ",");
+            } else if (strcmp(types[t], "SCH") == 0) {
+              int id = i;
+              char name[64];
+              snprintf(name, sizeof(name), "Schedule Node %d", i);
+              const char *pv = (i % 3 == 0) ? "Active" : "Inactive";
+              const char *effectivePeriod = "2024-01-01 - 2024-12-31";
+              const char *scheduleDefault = "Inactive";
+              char objRef[32];
+              snprintf(objRef, sizeof(objRef), "BO:%d", i);
+
+              snprintf(obj, sizeof(obj),
+                       "{\"id\":\"%s:%d\",\"name\":\"%s\",\"pv\":\"%s\",\"effPeriod\":\"%s\",\"schDef\":\"%s\",\"objRef\":\"%s\"}%s",
+                       types[t], id, name, pv, effectivePeriod, scheduleDefault, objRef, (i == 100) ? "" : ",");
+            } else if (strcmp(types[t], "TLOG") == 0) {
+              int id = i;
+              char name[64];
+              snprintf(name, sizeof(name), "TrendLog Node %d", i);
+              const char *enable = (i % 4 == 0) ? "False" : "True";
+              int interval = 15;
+              char logRef[32];
+              snprintf(logRef, sizeof(logRef), "AI:%d", i);
+              int recordCount = 100 + (cycle * 2) % 1000;
+              int totalCount = 5000 + cycle * 2;
+
+              snprintf(obj, sizeof(obj),
+                       "{\"id\":\"%s:%d\",\"name\":\"%s\",\"enable\":\"%s\",\"interval\":%d,\"logRef\":\"%s\",\"rc\":%d,\"tc\":%d}%s",
+                       types[t], id, name, enable, interval, logRef, recordCount, totalCount, (i == 100) ? "" : ",");
+            } else if (strcmp(types[t], "FBD") == 0) {
+              int id = i;
+              char name[64];
+              snprintf(name, sizeof(name), "FBD Node %d", i);
+              const char *pv = ((i + cycle) % 2 == 0) ? "true" : "false";
+              int period = 1000 + i * 10;
+              int fb = 10 + i % 5;
+              int var = 20 + i % 10;
+              int link = i * 4 + 100;
+
+              snprintf(obj, sizeof(obj),
+                       "{\"id\":\"%s:%d\",\"name\":\"%s\",\"pv\":%s,\"period\":%d,\"fb\":%d,\"var\":%d,\"link\":%d}%s",
+                       types[t], id, name, pv, period, fb, var, link, (i == 100) ? "" : ",");
+            }
+
+            strcat(payload, obj);
+          }
+          strcat(payload, "]");
+        }
+
+        char topic[64];
+        snprintf(topic, sizeof(topic), "bacnet/objects/update/%s", types[t]);
+
+        // 데이터 Publish (qos 0, retain false)
+        rc = mosquitto_publish(mosq, NULL, topic, strlen(payload), payload, 0,
+                               false);
+        if (rc != MOSQ_ERR_SUCCESS) {
+          fprintf(stderr, "퍼블리시 에러 (%s): %s\n", types[t],
+                  mosquitto_strerror(rc));
+        }
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // [파트 B] FBD 실시간 모니터링 전송 서비스 (신규 추가된 상시 백그라운드 스트림)
+    // -------------------------------------------------------------------------
+    // 이 파트는 기존 AI, AO, BV, FBD 등의 active_types 플래그와 무관하게 
+    // 컴파일러/브로커 구동과 동시에 'fbd/monitor/1'로 상시 스트리밍을 제공합니다.
+    fbd_node0_in += get_random_offset();
+    fbd_node0_out += get_random_offset();
+    fbd_node1_in += get_random_offset();
+    fbd_node1_out += get_random_offset();
+    fbd_node2_in0 += get_random_offset();
+    fbd_node2_in1 += get_random_offset();
+    fbd_node2_out += get_random_offset();
+
+    char fbd_monitor_payload[512];
+    snprintf(fbd_monitor_payload, sizeof(fbd_monitor_payload),
+             "{"
+                 "\"0\":{\"IN\":[%.2f],\"OUT\":[%.2f]},"
+                 "\"1\":{\"IN\":[%.2f],\"OUT\":[%.2f]},"
+                 "\"2\":{\"IN\":[%.2f,%.2f],\"OUT\":[%.2f]}"
+             "}",
+             fbd_node0_in, fbd_node0_out,
+             fbd_node1_in, fbd_node1_out,
+             fbd_node2_in0, fbd_node2_in1, fbd_node2_out
+    );
+
+    // 웹에서 실시간 모니터링 소켓이 바라보고 있는 "fbd/monitor/1" 토픽으로 모니터링 페이로드 상시 발행
+    rc = mosquitto_publish(mosq, NULL, "fbd/monitor/1", strlen(fbd_monitor_payload), fbd_monitor_payload, 0, false);
+    if (rc == MOSQ_ERR_SUCCESS) {
+      printf("📺 [FBD Monitor 상시 전송] Topic: fbd/monitor/1 | Payload: %s\n", fbd_monitor_payload);
+    } else {
+      fprintf(stderr, "❌ FBD Monitor 퍼블리시 에러: %s\n", mosquitto_strerror(rc));
+    }
+    // -------------------------------------------------------------------------
+
+    sleep(3); // 3초 대기
+    cycle++;
+  }
+
+  // 5. 종료 전 리소스 정리 (현재 무한루프라 도달하지 않음)
+  mosquitto_loop_stop(mosq, true);
+  mosquitto_disconnect(mosq);
+  mosquitto_destroy(mosq);
+  mosquitto_lib_cleanup();
+
+  return 0;
+}
