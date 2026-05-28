@@ -425,6 +425,10 @@ const setMode = (mode) => {
   } else {
     currentMode.value = 'setting'
     simulatedValues.value = {}
+    if (fbdRequestInterval) {
+      clearInterval(fbdRequestInterval)
+      fbdRequestInterval = null
+    }
     if (mqttClient) {
       mqttClient.end()
       mqttClient = null
@@ -453,6 +457,7 @@ const realtimeData = ref({})
 provide('currentMode', currentMode)
 provide('realtimeData', realtimeData)
 let mqttClient = null
+let fbdRequestInterval = null
 
 const connectMQTT = () => {
   if (mqttClient) {
@@ -465,6 +470,24 @@ const connectMQTT = () => {
     console.log('MQTT Connected to Raspberry Pi')
     // inst 값이 가변적일 수 있으므로 #을 사용해 모든 fbd/monitor 하위 값을 수신합니다.
     mqttClient.subscribe('fbd/monitor/#')
+
+    // FBD 모니터링 요청 주기적(3초) 발행 시작
+    if (diagramInfo.value.inst) {
+      const requestTopic = `fbd/request/monitor/${diagramInfo.value.inst}`
+      // 첫 즉시 요청 전송
+      mqttClient.publish(requestTopic, '{}')
+      console.log(`[MQTT 발행] 즉시 요청 Topic: ${requestTopic}`)
+
+      if (fbdRequestInterval) {
+        clearInterval(fbdRequestInterval)
+      }
+      fbdRequestInterval = setInterval(() => {
+        if (mqttClient && mqttClient.connected && currentMode.value === 'monitoring' && diagramInfo.value.inst) {
+          mqttClient.publish(requestTopic, '{}')
+          console.log(`[MQTT 발행] 주기 요청 Topic: ${requestTopic}`)
+        }
+      }, 3000)
+    }
   })
 
   mqttClient.on('message', (topic, message) => {
@@ -523,6 +546,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
+  if (fbdRequestInterval) {
+    clearInterval(fbdRequestInterval)
+    fbdRequestInterval = null
+  }
   if (mqttClient) {
     mqttClient.end()
   }

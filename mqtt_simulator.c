@@ -17,6 +17,23 @@ bool active_types[12] = {false, false, false, false, false, false, false, false,
 const char *types[] = {"AI", "AO", "AV", "BI", "BO", "BV", "MSV", "DEV", "CAL", "SCH", "TLOG", "FBD"};
 const int num_types = 12;
 
+#define MAX_IO 10
+
+typedef struct {
+  int id;
+  int in_count;
+  double in_values[MAX_IO];
+  int out_count;
+  double out_values[MAX_IO];
+} FbdNode;
+
+// 초기 데이터 테이블 정의 (노드별로 IN, OUT 개수와 초기값을 완벽 분리)
+static FbdNode fbd_nodes[3] = {
+  {0, 1, {15.5}, 1, {12.0}},          // 노드 0: IN 1개, OUT 1개
+  {1, 1, {10.0}, 1, {50.0}},          // 노드 1: IN 1개, OUT 1개
+  {2, 2, {0.0, 1.0}, 1, {1.0}}        // 노드 2: IN 2개, OUT 1개
+};
+
 int get_type_index(const char *type) {
   for (int i = 0; i < num_types; i++) {
     if (strcmp(types[i], type) == 0)
@@ -137,7 +154,8 @@ void on_connect(struct mosquitto *mosq, void *obj, int rc) {
     // 요청 및 제어 토픽 구독
     mosquitto_subscribe(mosq, NULL, "bacnet/request/#", 0);
     mosquitto_subscribe(mosq, NULL, "bacnet/command/#", 0);
-    printf("📡 웹 요청(subscribe/unsubscribe) 및 제어(write) 토픽 수신 대기 중...\n");
+    mosquitto_subscribe(mosq, NULL, "fbd/request/monitor/#", 0);
+    printf("📡 웹 요청(subscribe/unsubscribe/monitor) 및 제어(write) 토픽 수신 대기 중...\n");
   } else {
     printf("❌ 연결 실패, 반환 코드: %d\n", rc);
   }
@@ -191,6 +209,60 @@ void on_message(struct mosquitto *mosq, void *obj,
       }
     }
   }
+  // 4. FBD 모니터링 요청 처리
+  else if (strncmp(msg->topic, "fbd/request/monitor/", 20) == 0) {
+    const char *fbd_id_str = msg->topic + 20;
+    int fbd_id = atoi(fbd_id_str);
+
+    char fbd_monitor_payload[1024] = {0};
+    strcpy(fbd_monitor_payload, "{");
+
+    for (int n = 0; n < 3; n++) {
+      // 1. 가변 개수만큼 실시간 랜덤 상태 업데이트
+      for (int i = 0; i < fbd_nodes[n].in_count; i++) {
+        fbd_nodes[n].in_values[i] += get_random_offset();
+      }
+      for (int i = 0; i < fbd_nodes[n].out_count; i++) {
+        fbd_nodes[n].out_values[i] += get_random_offset();
+      }
+
+      // 2. 중첩 루프로 가변 입출력 JSON 포맷팅 조립
+      char node_str[512] = {0};
+      snprintf(node_str, sizeof(node_str), "\"%d\":{\"IN\":[", fbd_nodes[n].id);
+      
+      for (int i = 0; i < fbd_nodes[n].in_count; i++) {
+        char val_str[32];
+        snprintf(val_str, sizeof(val_str), "%.2f%s", fbd_nodes[n].in_values[i], 
+                 (i == fbd_nodes[n].in_count - 1) ? "" : ",");
+        strcat(node_str, val_str);
+      }
+      strcat(node_str, "],\"OUT\":[");
+      
+      for (int i = 0; i < fbd_nodes[n].out_count; i++) {
+        char val_str[32];
+        snprintf(val_str, sizeof(val_str), "%.2f%s", fbd_nodes[n].out_values[i], 
+                 (i == fbd_nodes[n].out_count - 1) ? "" : ",");
+        strcat(node_str, val_str);
+      }
+      strcat(node_str, "]}");
+
+      strcat(fbd_monitor_payload, node_str);
+      if (n < 2) {
+        strcat(fbd_monitor_payload, ",");
+      }
+    }
+    strcat(fbd_monitor_payload, "}");
+
+    char response_topic[64];
+    snprintf(response_topic, sizeof(response_topic), "fbd/monitor/%d", fbd_id);
+
+    int publish_rc = mosquitto_publish(mosq, NULL, response_topic, strlen(fbd_monitor_payload), fbd_monitor_payload, 0, false);
+    if (publish_rc == MOSQ_ERR_SUCCESS) {
+      printf("📺 [FBD Monitor 요청 응답] Topic: %s | Payload: %s\n", response_topic, fbd_monitor_payload);
+    } else {
+      fprintf(stderr, "❌ FBD Monitor 퍼블리시 에러: %s\n", mosquitto_strerror(publish_rc));
+    }
+  }
 }
 
 // Publish 완료 시 호출되는 콜백 함수
@@ -201,15 +273,6 @@ void on_publish(struct mosquitto *mosq, void *obj, int mid) {
 int main() {
   struct mosquitto *mosq = NULL;
   int rc;
-
-  // FBD 실시간 모니터 시뮬레이션용 독자 상태 값 초기화
-  double fbd_node0_in = 15.5;
-  double fbd_node0_out = 12.0;
-  double fbd_node1_in = 10.0;
-  double fbd_node1_out = 50.0;
-  double fbd_node2_in0 = 0.0;
-  double fbd_node2_in1 = 1.0;
-  double fbd_node2_out = 1.0;
 
   time_t boot_time = time(NULL);
   char boot_time_str[64];
@@ -458,37 +521,9 @@ int main() {
     }
 
     // -------------------------------------------------------------------------
-    // [파트 B] FBD 실시간 모니터링 전송 서비스 (신규 추가된 상시 백그라운드 스트림)
+    // [파트 B] FBD 실시간 모니터링 전송 서비스 (웹 요청 시 응답 방식으로 전환됨)
     // -------------------------------------------------------------------------
-    // 이 파트는 기존 AI, AO, BV, FBD 등의 active_types 플래그와 무관하게 
-    // 컴파일러/브로커 구동과 동시에 'fbd/monitor/1'로 상시 스트리밍을 제공합니다.
-    fbd_node0_in += get_random_offset();
-    fbd_node0_out += get_random_offset();
-    fbd_node1_in += get_random_offset();
-    fbd_node1_out += get_random_offset();
-    fbd_node2_in0 += get_random_offset();
-    fbd_node2_in1 += get_random_offset();
-    fbd_node2_out += get_random_offset();
-
-    char fbd_monitor_payload[512];
-    snprintf(fbd_monitor_payload, sizeof(fbd_monitor_payload),
-             "{"
-                 "\"0\":{\"IN\":[%.2f],\"OUT\":[%.2f]},"
-                 "\"1\":{\"IN\":[%.2f],\"OUT\":[%.2f]},"
-                 "\"2\":{\"IN\":[%.2f,%.2f],\"OUT\":[%.2f]}"
-             "}",
-             fbd_node0_in, fbd_node0_out,
-             fbd_node1_in, fbd_node1_out,
-             fbd_node2_in0, fbd_node2_in1, fbd_node2_out
-    );
-
-    // 웹에서 실시간 모니터링 소켓이 바라보고 있는 "fbd/monitor/1" 토픽으로 모니터링 페이로드 상시 발행
-    rc = mosquitto_publish(mosq, NULL, "fbd/monitor/1", strlen(fbd_monitor_payload), fbd_monitor_payload, 0, false);
-    if (rc == MOSQ_ERR_SUCCESS) {
-      printf("📺 [FBD Monitor 상시 전송] Topic: fbd/monitor/1 | Payload: %s\n", fbd_monitor_payload);
-    } else {
-      fprintf(stderr, "❌ FBD Monitor 퍼블리시 에러: %s\n", mosquitto_strerror(rc));
-    }
+    // 상시 스트리밍 방식에서 fbd/request/monitor/<FBD_ID> 토픽 수신 시 응답하는 방식으로 변경되었습니다.
     // -------------------------------------------------------------------------
 
     sleep(3); // 3초 대기
