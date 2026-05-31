@@ -23,15 +23,15 @@
   <div v-else class="editor-container">
     <aside class="sidebar">
       <div class="toolbar-actions">
-        <button class="icon-btn" style="color: #dc3545;" title="Clear Screen" @click="clearScreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></button>
-        <button class="icon-btn" style="color: #17a2b8;" title="Load File" @click="triggerFileUpload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2 2h4a2 2 0 0 1 2 2v1M5 19h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2z"></path></svg></button>
+        <button class="icon-btn" :disabled="currentMode === 'monitoring'" :style="{ opacity: currentMode === 'monitoring' ? 0.5 : 1, cursor: currentMode === 'monitoring' ? 'not-allowed' : 'pointer', color: '#dc3545' }" title="Clear Screen" @click="clearScreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></button>
+        <button class="icon-btn" :disabled="currentMode === 'monitoring'" :style="{ opacity: currentMode === 'monitoring' ? 0.5 : 1, cursor: currentMode === 'monitoring' ? 'not-allowed' : 'pointer', color: '#17a2b8' }" title="Load File" @click="triggerFileUpload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2 2h4a2 2 0 0 1 2 2v1M5 19h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2z"></path></svg></button>
         <button class="icon-btn" style="color: #007bff;" title="Save File" @click="downloadFile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
         <button class="icon-btn" style="color: #ffc107;" title="Verify FBD" @click="verifyFBD"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></button>
         <button class="icon-btn" style="color: #6f42c1;" title="Check META INFO" @click="exportDownloadInfo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>
       </div>
       <hr style="margin-bottom:15px;" />
 
-      <div class="var-toolbar-actions">
+      <div class="var-toolbar-actions" :style="{ opacity: currentMode === 'monitoring' ? 0.5 : 1, 'pointer-events': currentMode === 'monitoring' ? 'none' : 'auto' }">
         <button class="icon-btn var-btn" title="Add Input Block" @click="addNode({ type: 'Input', category: 'input', inputs: [], outputs: ['OUT'] })">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="4" width="8" height="16" rx="1" /><path d="M2 12h10"/><path d="m8 8 4 4-4 4"/></svg>
           <span>IN</span>
@@ -47,7 +47,7 @@
       </div>
       <hr style="margin-bottom:15px;" />
 
-      <div class="category-section" v-for="category in menuCategories" :key="category.name">
+      <div class="category-section" v-for="category in menuCategories" :key="category.name" :style="{ opacity: currentMode === 'monitoring' ? 0.5 : 1, 'pointer-events': currentMode === 'monitoring' ? 'none' : 'auto' }">
         <h3 class="category-title" @click="category.isOpen = !category.isOpen" style="cursor: pointer; user-select: none;">
           {{ category.isOpen ? '▼' : '▶' }} {{ category.name }}
         </h3>
@@ -82,11 +82,11 @@
 
     <main class="canvas-area">
       <div class="fbd-info-panel">
-        <div class="fbd-info-row"><label>Inst:</label><input type="number" v-model="diagramInfo.inst" /></div>
-        <div class="fbd-info-row"><label>Name:</label><input type="text" v-model="diagramInfo.name" /></div>
-        <div class="fbd-info-row"><label>Desc:</label><input type="text" v-model="diagramInfo.desc" /></div>
-        <div class="fbd-info-row"><label>Period:</label><input type="number" v-model="diagramInfo.period" /></div>
-        <div class="fbd-info-row"><label>RD:</label><input type="number" v-model="diagramInfo.rd" /></div>
+        <div class="fbd-info-row"><label>Inst:</label><input type="number" v-model="diagramInfo.inst" :disabled="currentMode === 'monitoring'" /></div>
+        <div class="fbd-info-row"><label>Name:</label><input type="text" v-model="diagramInfo.name" :disabled="currentMode === 'monitoring'" /></div>
+        <div class="fbd-info-row"><label>Desc:</label><input type="text" v-model="diagramInfo.desc" :disabled="currentMode === 'monitoring'" /></div>
+        <div class="fbd-info-row"><label>Period:</label><input type="number" v-model="diagramInfo.period" :disabled="currentMode === 'monitoring'" /></div>
+        <div class="fbd-info-row"><label>RD:</label><input type="number" v-model="diagramInfo.rd" :disabled="currentMode === 'monitoring'" /></div>
       </div>
 
       <div class="mode-toggle-panel">
@@ -94,7 +94,7 @@
         <button :class="{ active: currentMode === 'monitoring' }" @click="setMode('monitoring')">Monitoring Mode</button>
       </div>
 
-      <VueFlow v-model="elements" :node-types="nodeTypes" :fit-view-on-init="true">
+      <VueFlow v-model="elements" :node-types="nodeTypes" :fit-view-on-init="true" :nodes-connectable="currentMode !== 'monitoring'" :delete-key-code="currentMode === 'monitoring' ? null : 'Delete'">
         <Background pattern-color="#aaa" :gap="16" />
         <Controls />
       </VueFlow>
@@ -128,8 +128,8 @@
           <h4>Parameters</h4>
           <div v-for="(param, i) in selectedNode.data.parameters" :key="'param'+i" class="prop-row param-row-compact">
             <span class="prop-name" style="width: 80px; text-align: left;">{{ param.name.replace('Parameter', 'Para') }}</span>
-            <input v-if="param.dataType === 'HEX'" type="text" v-model="param.value" class="param-input-compact" placeholder="Value..." />
-            <input v-else type="number" step="any" v-model="param.value" class="param-input-compact" placeholder="Value..." />
+            <input v-if="param.dataType === 'HEX'" type="text" v-model="param.value" :disabled="currentMode === 'monitoring'" class="param-input-compact" placeholder="Value..." />
+            <input v-else type="number" step="any" v-model="param.value" :disabled="currentMode === 'monitoring'" class="param-input-compact" placeholder="Value..." />
             <span class="prop-type" style="width: 40px; text-align: center;">{{ param.dataType }}</span>
           </div>
         </div>
@@ -257,6 +257,7 @@ const openUdfbModal = () => {
 }
 
 const confirmUdfb = () => {
+  if (currentMode.value === 'monitoring') return
   const inCount = Math.max(0, parseInt(udfbInCount.value) || 0)
   const outCount = Math.max(0, parseInt(udfbOutCount.value) || 0)
   
@@ -274,6 +275,7 @@ onEdgesChange(() => { isVerified.value = false })
 let nodeCounter = 0 // 노드의 생성 순서를 저장할 카운터 변수
 
 const clearScreen = () => {
+  if (currentMode.value === 'monitoring') return
   if (confirm('Are you sure you want to clear all contents of the screen?')) {
     elements.value = []
     nodeCounter = 0
@@ -296,6 +298,12 @@ onPaneClick(() => {
 })
 
 const handleKeyDown = (e) => {
+  if (currentMode.value === 'monitoring') {
+    if (e.key === 'Delete' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v')) {
+      e.preventDefault()
+      return
+    }
+  }
   if (e.key === 'Delete') {
     const selected = getSelectedNodes.value
     if (selected && selected.length > 0) {
@@ -607,6 +615,7 @@ const closeDownloadModal = () => {
 
 // 2. 중요: 사용자가 핀과 핀을 연결했을 때 실행될 로직
 onConnect((params) => {
+  if (currentMode.value === 'monitoring') return
   console.log('연결 시도:', params)
   const currentId = nodeCounter++
   const newEdge = {
@@ -621,6 +630,7 @@ onConnect((params) => {
 
 // 3. 노드 추가 함수
 const addNode = (template) => {
+  if (currentMode.value === 'monitoring') return
   const currentId = nodeCounter++ // 0번부터 계속 증가
   const id = String(currentId) // Vue Flow에서 요소를 구분할 고유 문자열 ID
 
@@ -649,7 +659,7 @@ const addNode = (template) => {
       outputs: template.outputs,
       parameters,
       varType: template.category === 'constant' ? 'constant-int' : null,
-      varValue: '' 
+      varValue: template.category === 'input' ? '100,AI,1' : '' 
     }
   })
 }
@@ -729,11 +739,33 @@ const verifyFBD = () => {
         const typeName = isInput ? 'Input' : 'Constant'
         errors.push(`[${node.data.id ?? node.id}] Please enter a value for the ${node.data.label} block (${typeName}).`)
       } else if (isInput) {
-        const formatRegex = /^\s*[+-]?\d+(?:\.\d+)?\s*,\s*[^,]+\s*,\s*[+-]?\d+(?:\.\d+)?\s*$/
+        const formatRegex = /^\s*[+-]?\d+(?:\.\d+)?\s*,\s*[a-zA-Z_]+\s*,\s*[+-]?\d+(?:\.\d+)?\s*$/
         if (!formatRegex.test(valStr)) {
-          errors.push(`[${node.data.id ?? node.id}] Invalid input value format for ${node.data.label} block (Input). (Format: number,string,number)`)
+          errors.push(`[${node.data.id ?? node.id}] Invalid input value format for ${node.data.label} block (Input). (Format: number,string,number, e.g., 100,AI,1)`)
         }
       }
+    }
+
+    // Check parameters for DEVICE and OBJECT (specifically for output blocks)
+    const isOutputBlock = ['AOUT', 'AOUT_REL', 'APOUT', 'DOUT', 'DOUT_REL', 'DPOUT', 'MOUT', 'MOUT_REL', 'MPOUT', 'OUTPUT', 'OUTPUT_REL', 'OUT'].includes(node.data.label)
+    if (isOutputBlock && node.data.parameters && node.data.parameters.length > 0) {
+      node.data.parameters.forEach(param => {
+        if (param.name === 'DEVICE') {
+          const valStr = param.value === undefined || param.value === null ? '' : String(param.value).trim()
+          if (valStr === '') {
+            errors.push(`[${node.data.id ?? node.id}] Please enter a value for the DEVICE parameter in the ${node.data.label} block.`)
+          } else if (!/^[+-]?\d+(?:\.\d+)?$/.test(valStr)) {
+            errors.push(`[${node.data.id ?? node.id}] Invalid DEVICE parameter format for ${node.data.label} block. (Format: number)`)
+          }
+        } else if (param.name === 'OBJECT') {
+          const valStr = param.value === undefined || param.value === null ? '' : String(param.value).trim()
+          if (valStr === '') {
+            errors.push(`[${node.data.id ?? node.id}] Please enter a value for the OBJECT parameter in the ${node.data.label} block.`)
+          } else if (!/^\s*[a-zA-Z_]+\s*,\s*[+-]?\d+(?:\.\d+)?\s*$/.test(valStr)) {
+            errors.push(`[${node.data.id ?? node.id}] Invalid OBJECT parameter format for ${node.data.label} block. (Format: string,number, e.g., AV,1)`)
+          }
+        }
+      })
     }
   })
 
@@ -970,6 +1002,15 @@ const copyToClipboard = async (text) => {
 // 5. Save and Load Files
 const fileInput = ref(null)
 
+// XOR 암호화 + Base64 변환 함수 (방법2)
+const encryptXOR = (input, key = 0x5A) => {
+  let output = "";
+  for (let i = 0; i < input.length; i++) {
+    output += String.fromCharCode(input.charCodeAt(i) ^ key);
+  }
+  return btoa(unescape(encodeURIComponent(output)));
+}
+
 const downloadFile = () => {
   if (!isVerified.value) {
     alert("FBD validation is not completed yet.\nPlease click the 'Verify FBD' button first.")
@@ -986,8 +1027,9 @@ const downloadFile = () => {
   a.click()
   URL.revokeObjectURL(url)
 
-  // 2. META INFO TXT 파일 저장
   const metaText = generateMetaInfoText()
+
+  // 2. 평문 META INFO .txt 파일 저장
   const txtBlob = new Blob([metaText], { type: 'text/plain;charset=utf-8' })
   const txtUrl = URL.createObjectURL(txtBlob)
   const txtLink = document.createElement('a')
@@ -995,6 +1037,16 @@ const downloadFile = () => {
   txtLink.download = `fbd-${instValue}${nameValue}.txt`
   txtLink.click()
   URL.revokeObjectURL(txtUrl)
+
+  // 3. 암호화된(XOR + Base64) META INFO .enc 파일 저장
+  const encryptedText = encryptXOR(metaText, 0x5A)
+  const encBlob = new Blob([encryptedText], { type: 'text/plain;charset=utf-8' })
+  const encUrl = URL.createObjectURL(encBlob)
+  const encLink = document.createElement('a')
+  encLink.href = encUrl
+  encLink.download = `fbd-${instValue}${nameValue}.enc`
+  encLink.click()
+  URL.revokeObjectURL(encUrl)
 }
 
 const triggerFileUpload = () => {
@@ -1004,6 +1056,7 @@ const triggerFileUpload = () => {
 }
 
 const handleFileUpload = (event) => {
+  if (currentMode.value === 'monitoring') return
   const file = event.target.files[0]
   if (!file) return
   

@@ -3875,50 +3875,6 @@ export const BlockDefinitions =
             }
         ]
     },
-    "MSV_COMP": {
-        "type": "MSV_COMP",
-        "inputs": [
-            {
-                "name": "IN1",
-                "dataType": "INT"
-            },
-            {
-                "name": "IN2",
-                "dataType": "INT"
-            },
-            {
-                "name": "IN3",
-                "dataType": "INT"
-            },
-            {
-                "name": "IN4",
-                "dataType": "INT"
-            },
-            {
-                "name": "IN5",
-                "dataType": "INT"
-            },
-            {
-                "name": "IN6",
-                "dataType": "INT"
-            },
-            {
-                "name": "IN7",
-                "dataType": "INT"
-            },
-            {
-                "name": "COMP",
-                "dataType": "INT"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "BOOL"
-            }
-        ],
-        "parameters": []
-    },
     "MS_TIMER": {
         "type": "MS_TIMER",
         "inputs": [
@@ -8545,6 +8501,30 @@ export const BlockDefinitions =
                 "value": 0.0
             }
         ]
+    },
+    "WET_T": {
+        "type": "WET_T",
+        "inputs": [
+            {
+                "name": "TEMP",
+                "dataType": "REAL"
+            },
+            {
+                "name": "RH",
+                "dataType": "REAL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "WET TEMP",
+                "dataType": "REAL"
+            },
+            {
+                "name": "FB ERR",
+                "dataType": "HEX"
+            }
+        ],
+        "parameters": []
     },
     "XOR2": {
         "type": "XOR2",

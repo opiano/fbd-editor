@@ -1582,23 +1582,6 @@ export const initialMenuCategories = [
                 ]
             },
             {
-                "type": "MSV_COMP",
-                "category": "block",
-                "inputs": [
-                    "IN1",
-                    "IN2",
-                    "IN3",
-                    "IN4",
-                    "IN5",
-                    "IN6",
-                    "IN7",
-                    "COMP"
-                ],
-                "outputs": [
-                    "OUT"
-                ]
-            },
-            {
                 "type": "NEQ_B",
                 "category": "block",
                 "inputs": [
@@ -1997,6 +1980,18 @@ export const initialMenuCategories = [
                 ],
                 "outputs": [
                     "OUT"
+                ]
+            },
+            {
+                "type": "WET_T",
+                "category": "block",
+                "inputs": [
+                    "TEMP",
+                    "RH"
+                ],
+                "outputs": [
+                    "WET TEMP",
+                    "FB ERR"
                 ]
             }
         ]
