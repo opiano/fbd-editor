@@ -82,11 +82,11 @@
 
     <main class="canvas-area">
       <div class="fbd-info-panel">
-        <div class="fbd-info-row"><label>Inst:</label><input type="number" v-model="diagramInfo.inst" :disabled="currentMode === 'monitoring'" /></div>
-        <div class="fbd-info-row"><label>Name:</label><input type="text" v-model="diagramInfo.name" :disabled="currentMode === 'monitoring'" /></div>
-        <div class="fbd-info-row"><label>Desc:</label><input type="text" v-model="diagramInfo.desc" :disabled="currentMode === 'monitoring'" /></div>
-        <div class="fbd-info-row"><label>Period:</label><input type="number" v-model="diagramInfo.period" :disabled="currentMode === 'monitoring'" /></div>
-        <div class="fbd-info-row"><label>RD:</label><input type="number" v-model="diagramInfo.rd" :disabled="currentMode === 'monitoring'" /></div>
+        <div class="fbd-info-row"><label>Inst:</label><input type="number" v-model="diagramInfo.inst" @keydown.stop :disabled="currentMode === 'monitoring'" /></div>
+        <div class="fbd-info-row"><label>Name:</label><input type="text" v-model="diagramInfo.name" @keydown.stop :disabled="currentMode === 'monitoring'" /></div>
+        <div class="fbd-info-row"><label>Desc:</label><input type="text" v-model="diagramInfo.desc" @keydown.stop :disabled="currentMode === 'monitoring'" /></div>
+        <div class="fbd-info-row"><label>Period:</label><input type="number" v-model="diagramInfo.period" @keydown.stop :disabled="currentMode === 'monitoring'" /></div>
+        <div class="fbd-info-row"><label>RD:</label><input type="number" v-model="diagramInfo.rd" @keydown.stop :disabled="currentMode === 'monitoring'" /></div>
       </div>
 
       <div class="mode-toggle-panel">
@@ -128,8 +128,8 @@
           <h4>Parameters</h4>
           <div v-for="(param, i) in selectedNode.data.parameters" :key="'param'+i" class="prop-row param-row-compact">
             <span class="prop-name" style="width: 80px; text-align: left;">{{ param.name.replace('Parameter', 'Para') }}</span>
-            <input v-if="param.dataType === 'HEX'" type="text" v-model="param.value" :disabled="currentMode === 'monitoring'" class="param-input-compact" placeholder="Value..." />
-            <input v-else type="number" step="any" v-model="param.value" :disabled="currentMode === 'monitoring'" class="param-input-compact" placeholder="Value..." />
+            <input v-if="param.dataType === 'HEX'" type="text" v-model="param.value" @keydown.stop :disabled="currentMode === 'monitoring'" class="param-input-compact" placeholder="Value..." />
+            <input v-else type="number" step="any" v-model="param.value" @keydown.stop :disabled="currentMode === 'monitoring'" class="param-input-compact" placeholder="Value..." />
             <span class="prop-type" style="width: 40px; text-align: center;">{{ param.dataType }}</span>
           </div>
         </div>
@@ -163,15 +163,15 @@
         <h3>Add UDFB</h3>
         <div style="margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
           <label style="font-weight:bold; white-space: nowrap;">Name:</label>
-          <input type="text" v-model="udfbName" placeholder="Block name" style="width:100px; padding:6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
+          <input type="text" v-model="udfbName" @keydown.stop placeholder="Block name" style="width:100px; padding:6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
         </div>
         <div style="margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
           <label style="font-weight:bold; white-space: nowrap;">Inputs:</label>
-          <input type="number" v-model="udfbInCount" min="0" style="width:100px; padding:6px; border: 1px solid #ccc; border-radius: 4px;" />
+          <input type="number" v-model="udfbInCount" @keydown.stop min="0" style="width:100px; padding:6px; border: 1px solid #ccc; border-radius: 4px;" />
         </div>
         <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
           <label style="font-weight:bold; white-space: nowrap;">Outputs:</label>
-          <input type="number" v-model="udfbOutCount" min="0" style="width:100px; padding:6px; border: 1px solid #ccc; border-radius: 4px;" />
+          <input type="number" v-model="udfbOutCount" @keydown.stop min="0" style="width:100px; padding:6px; border: 1px solid #ccc; border-radius: 4px;" />
         </div>
         <div class="modal-actions" style="justify-content: flex-end; gap: 10px;">
           <button style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" @click="showUdfbModal = false">Cancel</button>
@@ -187,7 +187,7 @@
         <p style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">Please enter the IP address of the controller to fetch monitoring data.</p>
         <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
           <label style="font-weight:bold; white-space: nowrap;">Controller IP:</label>
-          <input type="text" v-model="mqttBrokerIp" placeholder="e.g. 192.168.0.100" style="width:240px; padding:6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" @keyup.enter="confirmMqttIp" />
+          <input type="text" v-model="mqttBrokerIp" @keydown.stop placeholder="e.g. 192.168.0.100" style="width:240px; padding:6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" @keyup.enter="confirmMqttIp" />
         </div>
         <div class="modal-actions" style="justify-content: flex-end; gap: 10px;">
           <button style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" @click="cancelMqttIp">Cancel</button>

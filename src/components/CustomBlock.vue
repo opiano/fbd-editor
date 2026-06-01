@@ -4,19 +4,19 @@
     
     <!-- Constant Settings -->
     <div v-if="data.category === 'constant'" class="node-content custom-var-content nodrag" style="display: flex; gap: 2px; align-items: center; padding: 4px 2px; position: relative;">
-      <select v-model="data.varType" :disabled="currentMode === 'monitoring'" class="selector" style="flex: 1; margin-bottom: 0; padding: 0 1px;">
+      <select v-model="data.varType" @keydown.stop :disabled="currentMode === 'monitoring'" class="selector" style="flex: 1; margin-bottom: 0; padding: 0 1px;">
         <option value="constant-int">Int</option>
         <option value="constant-bool">Bool</option>
         <option value="constant-float">Real</option>
       </select>
-      <input v-model="data.varValue" :disabled="currentMode === 'monitoring'" placeholder="Val" class="var-input" style="flex: 1; margin-bottom: 0; padding: 1px; margin-right: 6px;"/>
+      <input v-model="data.varValue" @keydown.stop :disabled="currentMode === 'monitoring'" placeholder="Val" class="var-input" style="flex: 1; margin-bottom: 0; padding: 1px; margin-right: 6px;"/>
       <Handle type="source" :position="Position.Right" :id="data.outputs[0]" style="top: 50%; right: -4px; transform: translateY(-50%); margin: 0;" />
       <span v-if="currentMode === 'monitoring' && realtimeData?.[data.id]?.OUT?.[0] !== undefined" class="port-rt-val-node rt-out" style="top: -12px; right: -4px;">{{ realtimeData[data.id].OUT[0] }}</span>
     </div>
 
     <!-- Input Settings -->
     <div v-if="data.category === 'input'" class="node-content custom-var-content nodrag" style="display: flex; align-items: center; padding: 4px 2px; position: relative;">
-      <input v-model="data.varValue" :disabled="currentMode === 'monitoring'" placeholder="Input Name..." class="var-input" style="margin-bottom: 0; margin-right: 6px; flex: 1;"/>
+      <input v-model="data.varValue" @keydown.stop :disabled="currentMode === 'monitoring'" placeholder="Input Name..." class="var-input" style="margin-bottom: 0; margin-right: 6px; flex: 1;"/>
       <Handle type="source" :position="Position.Right" :id="data.outputs[0]" style="top: 50%; right: -4px; transform: translateY(-50%); margin: 0;" />
       <span v-if="currentMode === 'monitoring' && realtimeData?.[data.id]?.OUT?.[0] !== undefined" class="port-rt-val-node rt-out" style="top: -12px; right: -4px;">{{ realtimeData[data.id].OUT[0] }}</span>
     </div>
