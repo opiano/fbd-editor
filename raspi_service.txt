@@ -5,11 +5,18 @@ ssh pi@<라즈베리파이_IP>
 sudo mkdir -p /var/www/fbd-editor
 
 # 3. 업로드된 파일들을 웹 디렉토리로 이동
-sudo cp -r /home/pi/fbd-editor/* /var/www/html/fbd-editor/
+sudo cp -r /home/pi/fbd-editor/* /var/www/fbd-editor/
 
-# 4. Nginx 웹 서버 유저(www-data)가 파일을 읽을 수 있도록 권한 부여
-sudo chown -R www-data:www-data /var/www/fbd-editor
-sudo chmod -R 755 /var/www/fbd-editor
+# 4. Nginx 웹 서버 권한 설정
+
+# 소유자는 pi, 그룹은 www-data로 설정
+sudo chown -R pi:www-data /var/www/fbd-editor
+
+# 폴더 내 모든 파일 및 디렉토리 권한을 775(소유자/그룹은 쓰기 가능, 타인은 읽기만 가능)로 변경
+sudo chmod -R 775 /var/www/fbd-editor
+
+#pi 계정이 파일 쓸수 있도록..
+
 
 ---------------------
 
@@ -29,4 +36,43 @@ location / { } 블록 밑에 아래 내용 추가하기
         index index.html;
     }
 
+
+
+=============================
+
+pi@armbian:/var/www$ cat /etc/nginx/sites-available/ddc-web
+server {
+    listen 80;
+    server_name _; # 모든 도메인/IP 허용
+
+    root /var/www/ddc-web;
+    index index.html;
+
+    location / {
+        # SPA(Single Page Application) 라우팅을 위한 핵심 설정
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 1. /fbd-editor (슬래시 없음) 요청 시, 슬래시가 붙은 공식 주소로 안전하게 리다이렉트
+    location = /fbd-editor {
+        return 301 $scheme://$http_host$request_uri/;
+    }
+
+    # 2. 실제 파일 서빙 및 SPA 라우팅 처리 블록
+    location ^~ /fbd-editor/ {
+        root /var/www; # /var/www/fbd-editor/ 경로의 파일들을 서빙합니다.
+        index index.html;
+
+        # [핵심] 브라우저가 /fbd-editor/fbd-1 경로를 요청했을 때,
+        # 1. 해당 이름의 파일($uri)이나 폴더($uri/)가 서버에 없으면,
+        # 2. 최종적으로 /fbd-editor/index.html을 로드하여 Vue 앱이 구동되도록 합니다.
+        try_files $uri $uri/ /fbd-editor/index.html;
+    }
+
+    # 브라우저 캐싱 최적화 (선택사항)
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+}
 

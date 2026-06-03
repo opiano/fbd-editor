@@ -9,38 +9,6 @@ export const initialMenuCategories = [
         items: 
         [
             {
-                "type": "AHU_DIR",
-                "category": "block",
-                "inputs": [
-                    "MV",
-                    "WS",
-                    "STS",
-                    "MIN"
-                ],
-                "outputs": [
-                    "CVALVE",
-                    "HVALVE",
-                    "DAMPER",
-                    "FB ERR"
-                ]
-            },
-            {
-                "type": "AHU_REV",
-                "category": "block",
-                "inputs": [
-                    "MV",
-                    "WS",
-                    "STS",
-                    "MIN"
-                ],
-                "outputs": [
-                    "CVALVE",
-                    "HVALVE",
-                    "DAMPER",
-                    "FB ERR"
-                ]
-            },
-            {
                 "type": "ONOFF1",
                 "category": "block",
                 "inputs": [

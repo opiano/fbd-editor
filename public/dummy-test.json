@@ -1,0 +1,55 @@
+{
+  "diagramInfo": {
+    "inst": 1,
+    "name": "dummy-test",
+    "desc": "Dummy FBD diagram for testing URL loading",
+    "period": 100,
+    "rd": 1
+  },
+  "nodes": [
+    {
+      "id": "0",
+      "type": "fbd",
+      "position": { "x": 150, "y": 150 },
+      "data": {
+        "id": 0,
+        "label": "Input",
+        "category": "input",
+        "inputs": [],
+        "outputs": ["OUT"],
+        "parameters": [],
+        "varType": null,
+        "varValue": "100,AI,1"
+      }
+    },
+    {
+      "id": "1",
+      "type": "fbd",
+      "position": { "x": 400, "y": 150 },
+      "data": {
+        "id": 1,
+        "label": "DOUT",
+        "category": "block",
+        "inputs": ["IN"],
+        "outputs": [],
+        "parameters": [
+          { "name": "DEVICE", "dataType": "INT", "value": 1 },
+          { "name": "OBJECT", "dataType": "HEX", "value": "BO,1" }
+        ],
+        "varType": null,
+        "varValue": ""
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "2",
+      "source": "0",
+      "target": "1",
+      "sourceHandle": "OUT",
+      "targetHandle": "IN",
+      "label": "2",
+      "data": { "id": 2 }
+    }
+  ]
+}

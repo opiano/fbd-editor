@@ -228,7 +228,7 @@ const selectedNode = computed(() => {
   return elements.value.find(el => el.id === selectedElementId.value && el.type === 'fbd') || null
 })
 
-const isAuthenticated = ref(false)
+const isAuthenticated = ref(localStorage.getItem('fbd_isAuthenticated') === 'true')
 const loginId = ref('')
 const loginPw = ref('')
 const loginError = ref('')
@@ -236,6 +236,7 @@ const loginError = ref('')
 const handleLogin = () => {
   if (loginId.value === 'admin' && loginPw.value === 'fbd1234') {
     isAuthenticated.value = true
+    localStorage.setItem('fbd_isAuthenticated', 'true')
     loginError.value = ''
   } else {
     loginError.value = 'Invalid username or password.'
@@ -550,6 +551,12 @@ onMounted(() => {
   } else if (!isLocalhost) {
     mqttBrokerIp.value = window.location.hostname
   }
+
+  // URL에서 FBD 이름 감지 및 자동 로드
+  const fbdName = getFbdNameFromUrl()
+  if (fbdName) {
+    loadDiagramFile(fbdName)
+  }
 })
 
 onUnmounted(() => {
@@ -575,6 +582,102 @@ const diagramInfo = ref({
   period: '',
   rd: ''
 })
+
+// URL에서 FBD 이름을 파싱하는 함수
+const getFbdNameFromUrl = () => {
+  // 1. 쿼리 매개변수 확인: ?fbd=fbd-1
+  const urlParams = new URLSearchParams(window.location.search)
+  if (urlParams.has('fbd')) {
+    return urlParams.get('fbd')
+  }
+
+  // 2. 해시 라우팅 확인: #/fbd-1 또는 #fbd-1
+  const hash = window.location.hash
+  if (hash) {
+    const cleanedHash = hash.replace(/^#\/?/, '').split('?')[0]
+    if (cleanedHash && !cleanedHash.includes('=')) {
+      return cleanedHash
+    }
+  }
+
+  // 3. 경로명(Pathname) 확인: /fbd-editor/fbd-1
+  const path = window.location.pathname
+  const segments = path.split('/').filter(Boolean)
+  const baseSegment = 'fbd-editor'
+  const baseIndex = segments.indexOf(baseSegment)
+  
+  if (baseIndex !== -1 && segments.length > baseIndex + 1) {
+    const name = segments[baseIndex + 1]
+    if (name && name !== 'index.html') {
+      return name
+    }
+  } else if (segments.length > 0 && segments[0] !== baseSegment && segments[0] !== 'index.html') {
+    return segments[0]
+  }
+
+  return null
+}
+
+// 서버로부터 해당 FBD JSON 파일을 로드하는 함수
+const loadDiagramFile = async (name) => {
+  try {
+    const baseUrl = window.location.origin + '/fbd-editor/'
+    let response = await fetch(`${baseUrl}${name}.json`)
+    
+    // /fbd-editor/json/name.json 경로도 탐색 시도
+    if (!response.ok) {
+      response = await fetch(`${baseUrl}json/${name}.json`)
+    }
+
+    // 상대 경로로 최종 시도
+    if (!response.ok) {
+      response = await fetch(`./${name}.json`)
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const parsed = await response.json()
+    if (parsed.diagramInfo) {
+      diagramInfo.value = parsed.diagramInfo
+    } else {
+      diagramInfo.value = { inst: '', name: '', desc: '', period: '' }
+    }
+
+    if (parsed.nodes && parsed.edges) {
+      const processedEdges = parsed.edges.map(edge => ({
+        ...edge,
+        label: String(edge.id)
+      }))
+      elements.value = [...parsed.nodes, ...processedEdges]
+      
+      let maxId = -1
+      parsed.nodes.forEach(node => {
+        if (node.data && typeof node.data.id === 'number') {
+          if (node.data.id > maxId) maxId = node.data.id
+        } else if (!isNaN(Number(node.id))) {
+          if (Number(node.id) > maxId) maxId = Number(node.id)
+        }
+      })
+      parsed.edges.forEach(edge => {
+        if (edge.data && typeof edge.data.id === 'number') {
+          if (edge.data.id > maxId) maxId = edge.data.id
+        } else if (!isNaN(Number(edge.id))) {
+          if (Number(edge.id) > maxId) maxId = Number(edge.id)
+        }
+      })
+      nodeCounter = maxId + 1
+      isVerified.value = true
+      console.log(`Successfully loaded FBD diagram: ${name}`)
+    } else {
+      alert('Unsupported file format. (No nodes or edges found)')
+    }
+  } catch (err) {
+    console.error(`Failed to load diagram for "${name}":`, err)
+    alert(`Could not load diagram for "${name}". Please check if the file "${name}.json" exists on the server.`)
+  }
+}
 
 const showJsonModal = ref(false)
 const jsonOutput = ref('')
