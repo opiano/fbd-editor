@@ -16,6 +16,8 @@ sudo chown -R pi:www-data /var/www/fbd-editor
 sudo chmod -R 775 /var/www/fbd-editor
 
 #pi 계정이 파일 쓸수 있도록..
+pi 계정으로 json 파일을 해당 폴더로 복사해서, 웹에서 바로 json을 보고 직접 모니터링 가능함
+
 
 
 ---------------------

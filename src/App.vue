@@ -216,12 +216,152 @@ import { ConnectionLineType } from '@vue-flow/core'
 
 // 1. 커스텀 노드 타입 등록
 const nodeTypes = { fbd: markRaw(CustomBlock) }
-const { toObject, onConnect, addEdges, onEdgeClick, onNodeClick, onPaneClick, onNodesChange, onEdgesChange, getSelectedNodes } = useVueFlow()
+const { toObject, onConnect, addEdges, onEdgeClick, onNodeClick, onPaneClick, onNodesChange, onEdgesChange, getSelectedNodes, onNodeDragStart, onNodeDragStop } = useVueFlow()
 
 // 선택된 요소를 추적하여 삭제 키 이벤트에 대응
 const selectedElementId = ref(null)
 const copiedNodes = ref([]) // 복사된 여러 노드 저장용
 const copiedEdges = ref([]) // 복사된 노드간 연결선 저장용
+
+// Undo/Redo history stack
+const undoStack = ref([])
+let dragStartState = null
+
+const pushStateToUndoStack = () => {
+  if (undoStack.value.length >= 100) {
+    undoStack.value.shift()
+  }
+  undoStack.value.push({
+    elements: JSON.parse(JSON.stringify(elements.value)),
+    nodeCounter: nodeCounter,
+    diagramInfo: JSON.parse(JSON.stringify(diagramInfo.value))
+  })
+}
+
+const undo = () => {
+  if (undoStack.value.length === 0) return
+  const prevState = undoStack.value.pop()
+  elements.value = prevState.elements
+  nodeCounter = prevState.nodeCounter
+  diagramInfo.value = prevState.diagramInfo
+  selectedElementId.value = null
+  isVerified.value = false
+}
+
+// Drag & Drop hooks to capture state before movement
+onNodeDragStart(() => {
+  if (currentMode.value === 'monitoring') return
+  dragStartState = {
+    elements: JSON.parse(JSON.stringify(elements.value)),
+    nodeCounter: nodeCounter,
+    diagramInfo: JSON.parse(JSON.stringify(diagramInfo.value))
+  }
+})
+
+onNodeDragStop(() => {
+  if (currentMode.value === 'monitoring') return
+  if (dragStartState) {
+    // Compare positions of the nodes to see if there is actual movement
+    const getPosStr = (els) => JSON.stringify(
+      els.filter(el => el.type === 'fbd').map(el => ({ id: el.id, x: el.position?.x, y: el.position?.y }))
+    )
+    if (getPosStr(dragStartState.elements) !== getPosStr(elements.value)) {
+      if (undoStack.value.length >= 100) {
+        undoStack.value.shift()
+      }
+      undoStack.value.push(dragStartState)
+    }
+    dragStartState = null
+  }
+})
+
+// Helper functions for overlap check
+const getNodeWidth = (node) => {
+  if (!node.data) return 120
+  if (node.data.category === 'input' || node.data.category === 'constant') {
+    return 75
+  }
+  if (['AOUT', 'DOUT', 'MOUT', 'AOUT_REL', 'DOUT_REL', 'MOUT_REL', 'OUT'].includes(node.data.label)) {
+    return 100
+  }
+  return 120
+}
+
+const getNodeHeight = (node) => {
+  if (!node.data) return 80
+  if (node.data.category === 'input' || node.data.category === 'constant') {
+    return 40
+  }
+  const inputsLen = node.data.inputs ? node.data.inputs.length : 0
+  const outputsLen = node.data.outputs ? node.data.outputs.length : 0
+  return Math.max(inputsLen, outputsLen) * 20 + 35
+}
+
+const findNonOverlappingOffset = (newNodes, existingNodes) => {
+  const step = 20
+  
+  const hasOverlap = (testDx, testDy) => {
+    for (const newNode of newNodes) {
+      const testX = newNode.position.x + testDx
+      const testY = newNode.position.y + testDy
+      const testW = getNodeWidth(newNode)
+      const testH = getNodeHeight(newNode)
+      
+      for (const existingNode of existingNodes) {
+        if (existingNode.type !== 'fbd') continue
+        
+        const exX = existingNode.position.x
+        const exY = existingNode.position.y
+        const exW = getNodeWidth(existingNode)
+        const exH = getNodeHeight(existingNode)
+        
+        const margin = 15
+        if (
+          testX < exX + exW + margin &&
+          testX + testW + margin > exX &&
+          testY < exY + exH + margin &&
+          testY + testH + margin > exY
+        ) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+  
+  const dirs = [
+    [1, 0],  // Right
+    [0, 1],  // Down
+    [-1, 0], // Left
+    [0, -1]  // Up
+  ]
+  
+  let x = 20
+  let y = 20
+  let stepCount = 1
+  let dirIndex = 0
+  
+  if (!hasOverlap(x, y)) {
+    return { dx: x, dy: y }
+  }
+  
+  for (let iter = 0; iter < 1000; iter++) {
+    for (let i = 0; i < 2; i++) {
+      const [moveX, moveY] = dirs[dirIndex]
+      for (let j = 0; j < stepCount; j++) {
+        x += moveX * step
+        y += moveY * step
+        if (!hasOverlap(x, y)) {
+          return { dx: x, dy: y }
+        }
+      }
+      dirIndex = (dirIndex + 1) % 4
+    }
+    stepCount++
+  }
+  
+  return { dx: 20, dy: 20 }
+}
 
 const selectedNode = computed(() => {
   if (!selectedElementId.value) return null
@@ -278,6 +418,7 @@ let nodeCounter = 0 // 노드의 생성 순서를 저장할 카운터 변수
 const clearScreen = () => {
   if (currentMode.value === 'monitoring') return
   if (confirm('Are you sure you want to clear all contents of the screen?')) {
+    pushStateToUndoStack()
     elements.value = []
     nodeCounter = 0
     diagramInfo.value = { inst: '', name: '', desc: '', period: '', rd: '' }
@@ -300,18 +441,30 @@ onPaneClick(() => {
 
 const handleKeyDown = (e) => {
   if (currentMode.value === 'monitoring') {
-    if (e.key === 'Delete' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v')) {
+    if (e.key === 'Delete' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z')) {
       e.preventDefault()
       return
     }
   }
-  if (e.key === 'Delete') {
+
+  // Ignore keyboard shortcuts when user is typing in text fields
+  const targetTagName = e.target?.tagName?.toLowerCase()
+  if (targetTagName === 'input' || targetTagName === 'textarea' || targetTagName === 'select') {
+    return
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+    e.preventDefault()
+    undo()
+  } else if (e.key === 'Delete') {
     const selected = getSelectedNodes.value
     if (selected && selected.length > 0) {
+      pushStateToUndoStack()
       const selectedIds = selected.map(n => n.id)
       elements.value = elements.value.filter(el => !selectedIds.includes(el.id))
       selectedElementId.value = null
     } else if (selectedElementId.value) {
+      pushStateToUndoStack()
       elements.value = elements.value.filter(el => el.id !== selectedElementId.value)
       selectedElementId.value = null
     }
@@ -335,6 +488,8 @@ const handleKeyDown = (e) => {
     }
   } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
     if (copiedNodes.value && copiedNodes.value.length > 0) {
+      pushStateToUndoStack()
+
       // 기존 노드 중 최대 ID 찾기
       let maxId = -1
       elements.value.forEach(el => {
@@ -353,6 +508,9 @@ const handleKeyDown = (e) => {
       const newCopiedNodes = [] // 다음 붙여넣기를 위해 복사본 업데이트
       const idMapping = {} // 구 ID -> 신규 ID 매핑
       
+      const existingNodes = elements.value.filter(el => el.type === 'fbd')
+      const { dx, dy } = findNonOverlappingOffset(copiedNodes.value, existingNodes)
+
       copiedNodes.value.forEach(node => {
         const newNode = JSON.parse(JSON.stringify(node))
         const newIdStr = String(nextId)
@@ -360,9 +518,9 @@ const handleKeyDown = (e) => {
         
         newNode.id = newIdStr
         newNode.data.id = nextId
-        // 위치를 살짝 이동 (겹치지 않게)
-        newNode.position.x += 20
-        newNode.position.y += 20
+        // 위치를 기존 노드와 겹치지 않는 offset으로 이동
+        newNode.position.x += dx
+        newNode.position.y += dy
         
         newNodes.push(newNode)
         newCopiedNodes.push(newNode)
@@ -669,6 +827,8 @@ const loadDiagramFile = async (name) => {
       })
       nodeCounter = maxId + 1
       isVerified.value = true
+      undoStack.value = []
+      dragStartState = null
       console.log(`Successfully loaded FBD diagram: ${name}`)
     } else {
       alert('Unsupported file format. (No nodes or edges found)')
@@ -720,6 +880,7 @@ const closeDownloadModal = () => {
 onConnect((params) => {
   if (currentMode.value === 'monitoring') return
   console.log('연결 시도:', params)
+  pushStateToUndoStack()
   const currentId = nodeCounter++
   const newEdge = {
     ...params,
@@ -734,6 +895,7 @@ onConnect((params) => {
 // 3. 노드 추가 함수
 const addNode = (template) => {
   if (currentMode.value === 'monitoring') return
+  pushStateToUndoStack()
   const currentId = nodeCounter++ // 0번부터 계속 증가
   const id = String(currentId) // Vue Flow에서 요소를 구분할 고유 문자열 ID
 
@@ -1196,6 +1358,8 @@ const handleFileUpload = (event) => {
           }
         })
         nodeCounter = maxId + 1
+        undoStack.value = []
+        dragStartState = null
       } else {
         alert('Unsupported file format. (No nodes or edges found)')
       }
