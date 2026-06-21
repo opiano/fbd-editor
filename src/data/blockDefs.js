@@ -3749,8 +3749,8 @@ export const BlockDefinitions =
             }
         ]
     },
-    "MSR_TIMER": {
-        "type": "MSR_TIMER",
+    "TP_RETRIG": {
+        "type": "TP_RETRIG",
         "inputs": [
             {
                 "name": "IN",
@@ -3783,8 +3783,8 @@ export const BlockDefinitions =
             }
         ]
     },
-    "MS_TIMER": {
-        "type": "MS_TIMER",
+    "TP": {
+        "type": "TP",
         "inputs": [
             {
                 "name": "IN",
@@ -4281,8 +4281,8 @@ export const BlockDefinitions =
         ],
         "parameters": []
     },
-    "OFF_DELAY": {
-        "type": "OFF_DELAY",
+    "TOF": {
+        "type": "TOF",
         "inputs": [
             {
                 "name": "IN",
@@ -4411,8 +4411,8 @@ export const BlockDefinitions =
             }
         ]
     },
-    "ON_DELAY": {
-        "type": "ON_DELAY",
+    "TON": {
+        "type": "TON",
         "inputs": [
             {
                 "name": "IN",
@@ -6261,8 +6261,8 @@ export const BlockDefinitions =
             }
         ]
     },
-    "R_BISTABLE": {
-        "type": "R_BISTABLE",
+    "RS": {
+        "type": "RS",
         "inputs": [
             {
                 "name": "SET",
@@ -8159,8 +8159,8 @@ export const BlockDefinitions =
             }
         ]
     },
-    "S_BISTABLE": {
-        "type": "S_BISTABLE",
+    "SR": {
+        "type": "SR",
         "inputs": [
             {
                 "name": "SET",

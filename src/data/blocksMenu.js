@@ -1223,7 +1223,7 @@ export const initialMenuCategories = [
                 ]
             },
             {
-                "type": "R_BISTABLE",
+                "type": "RS",
                 "category": "block",
                 "inputs": [
                     "SET",
@@ -1246,7 +1246,7 @@ export const initialMenuCategories = [
                 ]
             },
             {
-                "type": "S_BISTABLE",
+                "type": "SR",
                 "category": "block",
                 "inputs": [
                     "SET",
@@ -1985,7 +1985,7 @@ export const initialMenuCategories = [
                 ]
             },
             {
-                "type": "MSR_TIMER",
+                "type": "TP_RETRIG",
                 "category": "block",
                 "inputs": [
                     "IN"
@@ -1998,7 +1998,7 @@ export const initialMenuCategories = [
                 ]
             },
             {
-                "type": "MS_TIMER",
+                "type": "TP",
                 "category": "block",
                 "inputs": [
                     "IN"
@@ -2011,7 +2011,7 @@ export const initialMenuCategories = [
                 ]
             },
             {
-                "type": "OFF_DELAY",
+                "type": "TOF",
                 "category": "block",
                 "inputs": [
                     "IN"
@@ -2024,7 +2024,7 @@ export const initialMenuCategories = [
                 ]
             },
             {
-                "type": "ON_DELAY",
+                "type": "TON",
                 "category": "block",
                 "inputs": [
                     "IN"
