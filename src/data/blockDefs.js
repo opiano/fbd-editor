@@ -91,7 +91,7 @@ export const BlockDefinitions =
             {
                 "name": "PERIOD",
                 "dataType": "INT",
-                "value": 0.0
+                "value": 1.0
             }
         ]
     },
@@ -154,7 +154,7 @@ export const BlockDefinitions =
             {
                 "name": "PERIOD",
                 "dataType": "INT",
-                "value": 0.0
+                "value": 1.0
             }
         ]
     },
@@ -217,7 +217,7 @@ export const BlockDefinitions =
             {
                 "name": "PERIOD",
                 "dataType": "INT",
-                "value": 0.0
+                "value": 1.0
             }
         ]
     },
@@ -280,7 +280,7 @@ export const BlockDefinitions =
             {
                 "name": "PERIOD",
                 "dataType": "INT",
-                "value": 0.0
+                "value": 1.0
             }
         ]
     },
@@ -343,7 +343,7 @@ export const BlockDefinitions =
             {
                 "name": "PERIOD",
                 "dataType": "INT",
-                "value": 0.0
+                "value": 1.0
             }
         ]
     },
@@ -406,7 +406,7 @@ export const BlockDefinitions =
             {
                 "name": "PERIOD",
                 "dataType": "INT",
-                "value": 0.0
+                "value": 1.0
             }
         ]
     },
@@ -494,7 +494,7 @@ export const BlockDefinitions =
         "type": "AIRFLOW",
         "inputs": [
             {
-                "name": "DELTAP",
+                "name": "DP",
                 "dataType": "REAL"
             }
         ],
@@ -997,7 +997,7 @@ export const BlockDefinitions =
             {
                 "name": "H LIMIT",
                 "dataType": "REAL",
-                "value": 10000000.0
+                "value": 100000000.0
             },
             {
                 "name": "L LIMIT",
@@ -1270,27 +1270,27 @@ export const BlockDefinitions =
             {
                 "name": "MONTH",
                 "dataType": "INT",
-                "value": 12.0
+                "value": 1.0
             },
             {
                 "name": "DAY",
                 "dataType": "INT",
-                "value": 31.0
+                "value": 1.0
             },
             {
                 "name": "HOUR",
                 "dataType": "INT",
-                "value": 23.0
+                "value": 0.0
             },
             {
                 "name": "MIN",
                 "dataType": "INT",
-                "value": 59.0
+                "value": 0.0
             },
             {
                 "name": "SEC",
                 "dataType": "INT",
-                "value": 59.0
+                "value": 0.0
             }
         ]
     },
@@ -1792,13 +1792,13 @@ export const BlockDefinitions =
                 "dataType": "REAL"
             },
             {
-                "name": "OUT",
+                "name": "SCALE",
                 "dataType": "REAL"
             }
         ],
         "parameters": [
             {
-                "name": "OUT",
+                "name": "SCALE",
                 "dataType": "REAL",
                 "value": 1.0
             }
@@ -3709,7 +3709,7 @@ export const BlockDefinitions =
             {
                 "name": "NUM",
                 "dataType": "INT",
-                "value": 5.0
+                "value": 3.0
             }
         ]
     },
@@ -5925,7 +5925,7 @@ export const BlockDefinitions =
             {
                 "name": "TI",
                 "dataType": "REAL",
-                "value": 1000000.0
+                "value": 0.0
             },
             {
                 "name": "TD",
@@ -5945,7 +5945,7 @@ export const BlockDefinitions =
             {
                 "name": "ERR DB",
                 "dataType": "REAL",
-                "value": 0.01
+                "value": 0.1
             }
         ]
     },
@@ -7028,7 +7028,7 @@ export const BlockDefinitions =
             {
                 "name": "PERIOD",
                 "dataType": "REAL",
-                "value": 100.0
+                "value": 60.0
             },
             {
                 "name": "SCALE",

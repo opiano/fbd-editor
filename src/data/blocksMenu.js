@@ -338,7 +338,7 @@ export const initialMenuCategories = [
                 ],
                 "outputs": [
                     "OUT",
-                    "OUT"
+            "SCALE"
                 ]
             },
             {
@@ -1710,7 +1710,7 @@ export const initialMenuCategories = [
                 "type": "AIRFLOW",
                 "category": "block",
                 "inputs": [
-                    "DELTAP"
+                    "DP"
                 ],
                 "outputs": [
                     "AIRFLOW"
