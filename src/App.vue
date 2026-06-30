@@ -94,7 +94,7 @@
         <button :class="{ active: currentMode === 'monitoring' }" @click="setMode('monitoring')">Monitoring Mode</button>
       </div>
 
-      <VueFlow v-model="elements" :node-types="nodeTypes" :fit-view-on-init="true" :nodes-connectable="currentMode !== 'monitoring'" :delete-key-code="currentMode === 'monitoring' ? null : 'Delete'">
+      <VueFlow v-model="elements" :node-types="nodeTypes" :edge-types="edgeTypes" :fit-view-on-init="true" :nodes-connectable="currentMode !== 'monitoring'" :delete-key-code="currentMode === 'monitoring' ? null : 'Delete'" :default-edge-options="{ type: 'smoothstep' }" :connection-line-type="ConnectionLineType.SmoothStep">
         <Background pattern-color="#aaa" :gap="16" />
         <Controls />
       </VueFlow>
@@ -204,6 +204,7 @@ import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
 import CustomBlock from './components/CustomBlock.vue'
+import CustomEdge from './components/CustomEdge.vue'
 import { initialMenuCategories } from './data/blocksMenu'
 import { BlockDefinitions } from './data/blockDefs'
 import mqtt from 'mqtt'
@@ -214,8 +215,9 @@ import { ConnectionLineType } from '@vue-flow/core'
 // VueFlow 컴포넌트 속성에 추가
 //<VueFlow :connection-line-type="ConnectionLineType.Step">
 
-// 1. 커스텀 노드 타입 등록
+// 1. 커스텀 노드/엣지 타입 등록
 const nodeTypes = { fbd: markRaw(CustomBlock) }
+const edgeTypes = { smoothstep: markRaw(CustomEdge) }
 const { toObject, onConnect, addEdges, onEdgeClick, onNodeClick, onPaneClick, onNodesChange, onEdgesChange, getSelectedNodes, onNodeDragStart, onNodeDragStop } = useVueFlow()
 
 // 선택된 요소를 추적하여 삭제 키 이벤트에 대응
