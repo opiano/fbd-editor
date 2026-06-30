@@ -338,7 +338,7 @@ export const initialMenuCategories = [
                 ],
                 "outputs": [
                     "OUT",
-            "SCALE"
+                    "SCALE"
                 ]
             },
             {
@@ -2066,7 +2066,7 @@ export const initialMenuCategories = [
         items: 
         [
             {
-                "type": "B2F",
+                "type": "BOOL_TO_FLOAT",
                 "category": "block",
                 "inputs": [
                     "IN"
@@ -2076,7 +2076,7 @@ export const initialMenuCategories = [
                 ]
             },
             {
-                "type": "B2I",
+                "type": "BOOL_TO_INT",
                 "category": "block",
                 "inputs": [
                     "IN"
@@ -2086,20 +2086,24 @@ export const initialMenuCategories = [
                 ]
             },
             {
-                "type": "BIN2DEC",
+                "type": "BIT_TO_INT",
                 "category": "block",
                 "inputs": [
                     "IN1",
                     "IN2",
                     "IN3",
-                    "IN4"
+                    "IN4",
+                    "IN5",
+                    "IN6",
+                    "IN7",
+                    "IN8"                    
                 ],
                 "outputs": [
                     "OUT"
                 ]
             },
             {
-                "type": "DEC2BIN",
+                "type": "INT_TO_BIT",
                 "category": "block",
                 "inputs": [
                     "IN"
@@ -2108,11 +2112,15 @@ export const initialMenuCategories = [
                     "OUT1",
                     "OUT2",
                     "OUT3",
-                    "OUT4"
+                    "OUT4",
+                    "OUT5",
+                    "OUT6",
+                    "OUT7",
+                    "OUT8"
                 ]
             },
             {
-                "type": "F2B",
+                "type": "FLOAT_TO_BOOL",
                 "category": "block",
                 "inputs": [
                     "IN"
@@ -2122,7 +2130,7 @@ export const initialMenuCategories = [
                 ]
             },
             {
-                "type": "F2I",
+                "type": "FLOAT_TO_INT",
                 "category": "block",
                 "inputs": [
                     "IN"
@@ -2132,7 +2140,7 @@ export const initialMenuCategories = [
                 ]
             },
             {
-                "type": "I2B",
+                "type": "INT_TO_BOOL",
                 "category": "block",
                 "inputs": [
                     "IN"
@@ -2142,7 +2150,7 @@ export const initialMenuCategories = [
                 ]
             },
             {
-                "type": "I2F",
+                "type": "INT_TO_FLOAT",
                 "category": "block",
                 "inputs": [
                     "IN"
@@ -2150,7 +2158,18 @@ export const initialMenuCategories = [
                 "outputs": [
                     "OUT"
                 ]
-            }
+            },
+		    {
+		        "type": "INT_PAIR_TO_FLOAT",
+		        "category": "block",
+		        "inputs": [
+		            "IN1",
+		            "IN2"
+		        ],
+		        "outputs": [
+		            "OUT"
+		        ]
+		    }            
         ]
       },
       {

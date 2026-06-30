@@ -1006,66 +1006,6 @@ export const BlockDefinitions =
             }
         ]
     },
-    "B2F": {
-        "type": "B2F",
-        "inputs": [
-            {
-                "name": "IN",
-                "dataType": "BOOL"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "REAL"
-            }
-        ],
-        "parameters": []
-    },
-    "B2I": {
-        "type": "B2I",
-        "inputs": [
-            {
-                "name": "IN",
-                "dataType": "BOOL"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "INT"
-            }
-        ],
-        "parameters": []
-    },
-    "BIN2DEC": {
-        "type": "BIN2DEC",
-        "inputs": [
-            {
-                "name": "IN1",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "IN2",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "IN3",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "IN4",
-                "dataType": "BOOL"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "INT"
-            }
-        ],
-        "parameters": []
-    },
     "BIT_INFO1": {
         "type": "BIT_INFO1",
         "inputs": [
@@ -1198,6 +1138,50 @@ export const BlockDefinitions =
         ],
         "parameters": []
     },
+    "BIT_TO_INT": {
+        "type": "BIT_TO_INT",
+        "inputs": [
+            {
+                "name": "IN1",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "IN2",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "IN3",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "IN4",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "IN5",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "IN6",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "IN7",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "IN8",
+                "dataType": "BOOL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "INT"
+            }
+        ],
+        "parameters": []
+    },   
     "BLINK": {
         "type": "BLINK",
         "inputs": [
@@ -1223,6 +1207,38 @@ export const BlockDefinitions =
                 "value": 1.0
             }
         ]
+    },
+    "BOOL_TO_FLOAT": {
+        "type": "BOOL_TO_FLOAT",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "BOOL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "REAL"
+            }
+        ],
+        "parameters": []
+    },
+    "BOOL_TO_INT": {
+        "type": "BOOL_TO_INT",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "BOOL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "INT"
+            }
+        ],
+        "parameters": []
     },
     "CLK": {
         "type": "CLK",
@@ -1378,34 +1394,6 @@ export const BlockDefinitions =
                 "value": 0.0
             }
         ]
-    },
-    "DEC2BIN": {
-        "type": "DEC2BIN",
-        "inputs": [
-            {
-                "name": "IN",
-                "dataType": "INT"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT1",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "OUT2",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "OUT3",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "OUT4",
-                "dataType": "BOOL"
-            }
-        ],
-        "parameters": []
     },
     "DELAY": {
         "type": "DELAY",
@@ -1804,38 +1792,6 @@ export const BlockDefinitions =
             }
         ]
     },
-    "F2B": {
-        "type": "F2B",
-        "inputs": [
-            {
-                "name": "IN",
-                "dataType": "REAL"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "BOOL"
-            }
-        ],
-        "parameters": []
-    },
-    "F2I": {
-        "type": "F2I",
-        "inputs": [
-            {
-                "name": "IN",
-                "dataType": "REAL"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "INT"
-            }
-        ],
-        "parameters": []
-    },
     "FB_ERR1": {
         "type": "FB_ERR1",
         "inputs": [
@@ -1912,6 +1868,38 @@ export const BlockDefinitions =
             {
                 "name": "IN8 ERR",
                 "dataType": "BOOL"
+            }
+        ],
+        "parameters": []
+    },
+    "FLOAT_TO_BOOL": {
+        "type": "FLOAT_TO_BOOL",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "REAL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "BOOL"
+            }
+        ],
+        "parameters": []
+    },
+    "FLOAT_TO_INT": {
+        "type": "FLOAT_TO_INT",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "REAL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "INT"
             }
         ],
         "parameters": []
@@ -2107,38 +2095,6 @@ export const BlockDefinitions =
             }
         ]
     },
-    "I2B": {
-        "type": "I2B",
-        "inputs": [
-            {
-                "name": "IN",
-                "dataType": "INT"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "BOOL"
-            }
-        ],
-        "parameters": []
-    },
-    "I2F": {
-        "type": "I2F",
-        "inputs": [
-            {
-                "name": "IN",
-                "dataType": "INT"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "REAL"
-            }
-        ],
-        "parameters": []
-    },
     "INPUT": {
         "type": "INPUT",
         "inputs": [],
@@ -2203,6 +2159,108 @@ export const BlockDefinitions =
                 "value": -100000000.0
             }
         ]
+    },
+    "INT_PAIR_TO_FLOAT": {
+        "type": "INT_PAIR_TO_FLOAT",
+        "inputs": [
+            {
+                "name": "IN1",
+                "dataType": "INT"
+            },
+            {
+                "name": "IN2",
+                "dataType": "INT"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "REAL"
+            }
+        ],
+        "parameters": [
+            {
+                "name": "OPTION",
+                "dataType": "INT",
+                "value": 1.0
+            }
+        ]
+    },    
+    "INT_TO_BIT": {
+        "type": "INT_TO_BIT",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "INT"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT1",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "OUT2",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "OUT3",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "OUT4",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "OUT5",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "OUT6",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "OUT7",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "OUT8",
+                "dataType": "BOOL"
+            }
+        ],
+        "parameters": []
+    },
+    "INT_TO_BOOL": {
+        "type": "INT_TO_BOOL",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "INT"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "BOOL"
+            }
+        ],
+        "parameters": []
+    },
+    "INT_TO_FLOAT": {
+        "type": "INT_TO_FLOAT",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "INT"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "REAL"
+            }
+        ],
+        "parameters": []
     },
     "LAG": {
         "type": "LAG",
@@ -3709,7 +3767,7 @@ export const BlockDefinitions =
             {
                 "name": "NUM",
                 "dataType": "INT",
-                "value": 3.0
+                "value": 5.0
             }
         ]
     },
@@ -3746,74 +3804,6 @@ export const BlockDefinitions =
                 "name": "PROPERTY",
                 "dataType": "INT",
                 "value": 85
-            }
-        ]
-    },
-    "TP_RETRIG": {
-        "type": "TP_RETRIG",
-        "inputs": [
-            {
-                "name": "IN",
-                "dataType": "BOOL"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "REV",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "ET",
-                "dataType": "INT"
-            },
-            {
-                "name": "FB ERR",
-                "dataType": "HEX"
-            }
-        ],
-        "parameters": [
-            {
-                "name": "TIME",
-                "dataType": "INT",
-                "value": 1.0
-            }
-        ]
-    },
-    "TP": {
-        "type": "TP",
-        "inputs": [
-            {
-                "name": "IN",
-                "dataType": "BOOL"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "REV",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "ET",
-                "dataType": "INT"
-            },
-            {
-                "name": "FB ERR",
-                "dataType": "HEX"
-            }
-        ],
-        "parameters": [
-            {
-                "name": "TIME",
-                "dataType": "INT",
-                "value": 1.0
             }
         ]
     },
@@ -4281,40 +4271,6 @@ export const BlockDefinitions =
         ],
         "parameters": []
     },
-    "TOF": {
-        "type": "TOF",
-        "inputs": [
-            {
-                "name": "IN",
-                "dataType": "BOOL"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "REV",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "ET",
-                "dataType": "INT"
-            },
-            {
-                "name": "FB ERR",
-                "dataType": "HEX"
-            }
-        ],
-        "parameters": [
-            {
-                "name": "TIME",
-                "dataType": "INT",
-                "value": 1.0
-            }
-        ]
-    },
     "ONOFF1": {
         "type": "ONOFF1",
         "inputs": [
@@ -4408,40 +4364,6 @@ export const BlockDefinitions =
                 "name": "MODE",
                 "dataType": "INT",
                 "value": 0.0
-            }
-        ]
-    },
-    "TON": {
-        "type": "TON",
-        "inputs": [
-            {
-                "name": "IN",
-                "dataType": "BOOL"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "REV",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "ET",
-                "dataType": "INT"
-            },
-            {
-                "name": "FB ERR",
-                "dataType": "HEX"
-            }
-        ],
-        "parameters": [
-            {
-                "name": "TIME",
-                "dataType": "INT",
-                "value": 1.0
             }
         ]
     },
@@ -7263,6 +7185,30 @@ export const BlockDefinitions =
         ],
         "parameters": []
     },
+    "SR": {
+        "type": "SR",
+        "inputs": [
+            {
+                "name": "SET",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "RESET",
+                "dataType": "BOOL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "REV",
+                "dataType": "BOOL"
+            }
+        ],
+        "parameters": []
+    },
     "STEP": {
         "type": "STEP",
         "inputs": [
@@ -8159,30 +8105,6 @@ export const BlockDefinitions =
             }
         ]
     },
-    "SR": {
-        "type": "SR",
-        "inputs": [
-            {
-                "name": "SET",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "RESET",
-                "dataType": "BOOL"
-            }
-        ],
-        "outputs": [
-            {
-                "name": "OUT",
-                "dataType": "BOOL"
-            },
-            {
-                "name": "REV",
-                "dataType": "BOOL"
-            }
-        ],
-        "parameters": []
-    },
     "TANGENT_F": {
         "type": "TANGENT_F",
         "inputs": [
@@ -8292,6 +8214,142 @@ export const BlockDefinitions =
                 "name": "TIME",
                 "dataType": "INT",
                 "value": 10.0
+            }
+        ]
+    },
+    "TOF": {
+        "type": "TOF",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "BOOL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "REV",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "ET",
+                "dataType": "INT"
+            },
+            {
+                "name": "FB ERR",
+                "dataType": "HEX"
+            }
+        ],
+        "parameters": [
+            {
+                "name": "TIME",
+                "dataType": "INT",
+                "value": 1.0
+            }
+        ]
+    },
+    "TON": {
+        "type": "TON",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "BOOL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "REV",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "ET",
+                "dataType": "INT"
+            },
+            {
+                "name": "FB ERR",
+                "dataType": "HEX"
+            }
+        ],
+        "parameters": [
+            {
+                "name": "TIME",
+                "dataType": "INT",
+                "value": 1.0
+            }
+        ]
+    },
+    "TP": {
+        "type": "TP",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "BOOL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "REV",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "ET",
+                "dataType": "INT"
+            },
+            {
+                "name": "FB ERR",
+                "dataType": "HEX"
+            }
+        ],
+        "parameters": [
+            {
+                "name": "TIME",
+                "dataType": "INT",
+                "value": 1.0
+            }
+        ]
+    },
+    "TP_RETRIG": {
+        "type": "TP_RETRIG",
+        "inputs": [
+            {
+                "name": "IN",
+                "dataType": "BOOL"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "REV",
+                "dataType": "BOOL"
+            },
+            {
+                "name": "ET",
+                "dataType": "INT"
+            },
+            {
+                "name": "FB ERR",
+                "dataType": "HEX"
+            }
+        ],
+        "parameters": [
+            {
+                "name": "TIME",
+                "dataType": "INT",
+                "value": 1.0
             }
         ]
     },
