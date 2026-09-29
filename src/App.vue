@@ -32,7 +32,12 @@
       <hr style="margin-bottom:15px;" />
 
       <div class="var-toolbar-actions" :style="{ opacity: currentMode === 'monitoring' ? 0.5 : 1, 'pointer-events': currentMode === 'monitoring' ? 'none' : 'auto' }">
-        <button class="icon-btn var-btn" title="Add Input Block" @click="addNode({ type: 'Input', category: 'input', inputs: [], outputs: ['OUT'] })">
+        <button 
+          class="icon-btn var-btn" 
+          :disabled="diagramInfo.isUdfb || currentMode === 'monitoring'" 
+          :title="diagramInfo.isUdfb ? 'UDFB 모드에서는 비활성화됩니다 (U.IN 사용)' : 'Add Input Block'" 
+          @click="addNode({ type: 'Input', category: 'input', inputs: [], outputs: ['OUT'] })"
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="4" width="8" height="16" rx="1" /><path d="M2 12h10"/><path d="m8 8 4 4-4 4"/></svg>
           <span>IN</span>
         </button>
@@ -40,9 +45,47 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="12" height="16" rx="2" ry="2"></rect><path d="M16 12h6"></path><path d="M8 9l2 -2v8"></path></svg>
           <span>C</span>
         </button>
-        <button class="icon-btn var-btn" title="Add User Defined Function Block" @click="openUdfbModal">
+        <button 
+          class="icon-btn var-btn" 
+          :disabled="diagramInfo.isUdfb || currentMode === 'monitoring'" 
+          :title="diagramInfo.isUdfb ? 'UDFB 모드에서는 비활성화됩니다' : 'Add User Defined Function Block'" 
+          @click="openUdfbModal"
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="16" rx="2" ry="2"></rect><path d="M2 8h4"></path><path d="M2 16h4"></path><path d="M18 12h4"></path></svg>
           <span>UDFB</span>
+        </button>
+      </div>
+
+      <div class="var-toolbar-actions" style="margin-top: 6px; gap: 4px;">
+        <button 
+          class="icon-btn var-btn" 
+          style="padding: 6px 2px; font-size: 11px; gap: 3px;"
+          :disabled="!diagramInfo.isUdfb || currentMode === 'monitoring'" 
+          :title="!diagramInfo.isUdfb ? 'UDFB 체크 시 사용 가능' : 'Add Analog Input (UI.A)'" 
+          @click="addNode({ type: 'UI.A', category: 'udfbinput', varType: 'constant-float', inputs: [], outputs: ['OUT'] })"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px; flex-shrink: 0;"><circle cx="15" cy="12" r="3" /><path d="M2 12h10"/><path d="m8 8 4 4-4 4"/></svg>
+          <span>UI.A</span>
+        </button>
+        <button 
+          class="icon-btn var-btn" 
+          style="padding: 6px 2px; font-size: 11px; gap: 3px;"
+          :disabled="!diagramInfo.isUdfb || currentMode === 'monitoring'" 
+          :title="!diagramInfo.isUdfb ? 'UDFB 체크 시 사용 가능' : 'Add Digital Input (UI.D)'" 
+          @click="addNode({ type: 'UI.D', category: 'udfbinput', varType: 'constant-bool', inputs: [], outputs: ['OUT'] })"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px; flex-shrink: 0;"><circle cx="15" cy="12" r="3" /><path d="M2 12h10"/><path d="m8 8 4 4-4 4"/></svg>
+          <span>UI.D</span>
+        </button>
+        <button 
+          class="icon-btn var-btn" 
+          style="padding: 6px 2px; font-size: 11px; gap: 3px;"
+          :disabled="!diagramInfo.isUdfb || currentMode === 'monitoring'" 
+          :title="!diagramInfo.isUdfb ? 'UDFB 체크 시 사용 가능' : 'Add Memory/Int Input (UI.M)'" 
+          @click="addNode({ type: 'UI.M', category: 'udfbinput', varType: 'constant-int', inputs: [], outputs: ['OUT'] })"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px; flex-shrink: 0;"><circle cx="15" cy="12" r="3" /><path d="M2 12h10"/><path d="m8 8 4 4-4 4"/></svg>
+          <span>UI.M</span>
         </button>
       </div>
       <hr style="margin-bottom:15px;" />
@@ -68,10 +111,12 @@
                 {{ subGroup.isOpen ? '▼' : '▶' }} {{ subGroup.name }}
               </h4>
               <div v-show="subGroup.isOpen" class="subgroup-items">
-                <div v-for="item in subGroup.items" :key="item.type" 
-                     class="menu-item subgroup-item" @click="addNode(item)">
-                  {{ item.type }}
-                </div>
+                <template v-for="item in subGroup.items" :key="item.type">
+                  <div v-if="isMenuItemVisible(subGroup, item)" 
+                       class="menu-item subgroup-item" @click="addNode(item)">
+                    {{ item.type }}
+                  </div>
+                </template>
               </div>
             </div>
           </template>
@@ -82,11 +127,17 @@
 
     <main class="canvas-area">
       <div class="fbd-info-panel">
+        <div class="fbd-info-row">
+          <label for="fbd-is-udfb" style="cursor: pointer;">UDFB:</label>
+          <div style="width: 100px; display: flex; align-items: center;">
+            <input id="fbd-is-udfb" type="checkbox" v-model="diagramInfo.isUdfb" :disabled="currentMode === 'monitoring'" class="fbd-info-checkbox" />
+          </div>
+        </div>
         <div class="fbd-info-row"><label>Inst:</label><input type="number" v-model="diagramInfo.inst" @keydown.stop :disabled="currentMode === 'monitoring'" /></div>
         <div class="fbd-info-row"><label>Name:</label><input type="text" v-model="diagramInfo.name" @keydown.stop :disabled="currentMode === 'monitoring'" /></div>
         <div class="fbd-info-row"><label>Desc:</label><input type="text" v-model="diagramInfo.desc" @keydown.stop :disabled="currentMode === 'monitoring'" /></div>
-        <div class="fbd-info-row"><label>Period:</label><input type="number" v-model="diagramInfo.period" @keydown.stop :disabled="currentMode === 'monitoring'" /></div>
-        <div class="fbd-info-row"><label>RD:</label><input type="number" v-model="diagramInfo.rd" @keydown.stop :disabled="currentMode === 'monitoring'" /></div>
+        <div class="fbd-info-row" :style="{ opacity: diagramInfo.isUdfb ? 0.5 : 1 }"><label>Period:</label><input type="number" v-model="diagramInfo.period" @keydown.stop :disabled="diagramInfo.isUdfb || currentMode === 'monitoring'" /></div>
+        <div class="fbd-info-row" :style="{ opacity: diagramInfo.isUdfb ? 0.5 : 1 }"><label>RD:</label><input type="number" v-model="diagramInfo.rd" @keydown.stop :disabled="diagramInfo.isUdfb || currentMode === 'monitoring'" /></div>
       </div>
 
       <div class="mode-toggle-panel">
@@ -120,15 +171,15 @@
           <div v-for="(output, index) in selectedNode.data.outputs" :key="output" class="prop-row">
             <span class="prop-name">{{ output }}</span>
             <span v-show="currentMode === 'monitoring'" class="prop-rt-val" style="color: #28a745; font-family: monospace; font-weight: bold; flex: 1; text-align: center;">{{ simulatedValues?.OUT?.[index] ?? '--' }}</span>
-            <span class="prop-type">{{ BlockDefinitions[selectedNode.data.label] ? BlockDefinitions[selectedNode.data.label].outputs.find(o => o.name === output)?.dataType || 'ANY' : 'ANY' }}</span>
+            <span class="prop-type">{{ getOutputType(selectedNode, output) }}</span>
           </div>
         </div>
 
         <div class="prop-section" v-if="selectedNode.data.parameters && selectedNode.data.parameters.length > 0">
           <h4>Parameters</h4>
           <div v-for="(param, i) in selectedNode.data.parameters" :key="'param'+i" class="prop-row param-row-compact">
-            <span class="prop-name" style="width: 80px; text-align: left;">{{ param.name.replace('Parameter', 'Para') }}</span>
-            <input v-if="param.dataType === 'HEX'" type="text" v-model="param.value" @keydown.stop :disabled="currentMode === 'monitoring'" class="param-input-compact" placeholder="Value..." />
+            <span class="prop-name" style="width: 80px; text-align: left;">{{ (['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(selectedNode.data.label) && (param.name === 'SEQ' || param.name === 'NAME')) ? 'NAME' : param.name.replace('Parameter', 'Para') }}</span>
+            <input v-if="param.dataType === 'HEX' || param.name === 'NAME'" type="text" v-model="param.value" @keydown.stop :disabled="currentMode === 'monitoring'" class="param-input-compact" :placeholder="param.name === 'NAME' ? 'OUT,1' : 'Value...'" />
             <input v-else type="number" step="any" v-model="param.value" @keydown.stop :disabled="currentMode === 'monitoring'" class="param-input-compact" placeholder="Value..." />
             <span class="prop-type" style="width: 40px; text-align: center;">{{ param.dataType }}</span>
           </div>
@@ -276,12 +327,20 @@ onNodeDragStop(() => {
 })
 
 // Helper functions for overlap check
+const isVarLike = (node) => {
+  if (!node || !node.data) return false
+  return node.data.category === 'input' || 
+         node.data.category === 'constant' || 
+         node.data.category === 'udfbinput' || 
+         ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(node.data.label)
+}
+
 const getNodeWidth = (node) => {
   if (!node.data) return 120
-  if (node.data.category === 'input' || node.data.category === 'constant') {
+  if (isVarLike(node)) {
     return 75
   }
-  if (['AOUT', 'DOUT', 'MOUT', 'AOUT_REL', 'DOUT_REL', 'MOUT_REL', 'OUT'].includes(node.data.label)) {
+  if (['AOUT', 'DOUT', 'MOUT', 'AOUT_REL', 'DOUT_REL', 'MOUT_REL', 'OUT', 'UAOUT', 'UDOUT', 'UMOUT'].includes(node.data.label)) {
     return 100
   }
   return 120
@@ -289,7 +348,7 @@ const getNodeWidth = (node) => {
 
 const getNodeHeight = (node) => {
   if (!node.data) return 80
-  if (node.data.category === 'input' || node.data.category === 'constant') {
+  if (isVarLike(node)) {
     return 40
   }
   const inputsLen = node.data.inputs ? node.data.inputs.length : 0
@@ -365,7 +424,18 @@ const findNonOverlappingOffset = (newNodes, existingNodes) => {
 
 const selectedNode = computed(() => {
   if (!selectedElementId.value) return null
-  return elements.value.find(el => el.id === selectedElementId.value && el.type === 'fbd') || null
+  const node = elements.value.find(el => el.id === selectedElementId.value && el.type === 'fbd') || null
+  if (node && node.data && ['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(node.data.label)) {
+    if (node.data.parameters) {
+      node.data.parameters.forEach(p => {
+        if (p.name === 'SEQ') p.name = 'NAME'
+        if (p.name === 'NAME' && (p.value === undefined || p.value === null || p.value === '' || p.value === 0 || p.value === 0.0 || p.value === '0' || p.value === '0.0')) {
+          p.value = 'OUT,1'
+        }
+      })
+    }
+  }
+  return node
 })
 
 const isAuthenticated = ref(localStorage.getItem('fbd_isAuthenticated') === 'true')
@@ -391,6 +461,7 @@ const udfbInCount = ref(2)
 const udfbOutCount = ref(1)
 
 const openUdfbModal = () => {
+  if (currentMode.value === 'monitoring' || diagramInfo.value.isUdfb) return
   udfbName.value = ''
   udfbInCount.value = 2
   udfbOutCount.value = 1
@@ -421,7 +492,7 @@ const clearScreen = () => {
     pushStateToUndoStack()
     elements.value = []
     nodeCounter = 0
-    diagramInfo.value = { inst: '', name: '', desc: '', period: '', rd: '' }
+    diagramInfo.value = { isUdfb: false, inst: '', name: '', desc: '', period: '', rd: '' }
   }
 }
 
@@ -731,9 +802,27 @@ onUnmounted(() => {
 // 2. 사이드바 메뉴 카테고리 정의 (접기/펴기 상태 포함을 위해 ref 사용)
 const menuCategories = ref(initialMenuCategories)
 
+const isMenuItemVisible = (subGroup, item) => {
+  if (subGroup?.name?.toLowerCase() === 'outputs') {
+    const isUdfbOutput = ['UAOUT', 'UDOUT', 'UMOUT', 'UDFBOUTPUT'].includes(item.type)
+    return diagramInfo.value.isUdfb ? isUdfbOutput : !isUdfbOutput
+  }
+  return true
+}
+
+const getOutputType = (node, output) => {
+  if (!node || !node.data) return 'ANY'
+  if (['UI.A', 'UIA'].includes(node.data.label)) return 'Real'
+  if (['UI.D', 'UID'].includes(node.data.label)) return 'Bool'
+  if (['UI.M', 'UIM'].includes(node.data.label)) return 'Int'
+  if (['UDFBINPUT', 'UI'].includes(node.data.label) || node.data.category === 'udfbinput') return 'ANY'
+  return BlockDefinitions[node.data.label] ? BlockDefinitions[node.data.label].outputs?.find(o => o.name === output)?.dataType || 'ANY' : 'ANY'
+}
+
 const elements = ref([]) // 현재 화면의 노드와 선(Edge)들
 
 const diagramInfo = ref({
+  isUdfb: false,
   inst: '',
   name: '',
   desc: '',
@@ -798,9 +887,16 @@ const loadDiagramFile = async (name) => {
 
     const parsed = await response.json()
     if (parsed.diagramInfo) {
-      diagramInfo.value = parsed.diagramInfo
+      diagramInfo.value = {
+        isUdfb: !!parsed.diagramInfo.isUdfb,
+        inst: parsed.diagramInfo.inst ?? '',
+        name: parsed.diagramInfo.name ?? '',
+        desc: parsed.diagramInfo.desc ?? '',
+        period: parsed.diagramInfo.period ?? '',
+        rd: parsed.diagramInfo.rd ?? ''
+      }
     } else {
-      diagramInfo.value = { inst: '', name: '', desc: '', period: '' }
+      diagramInfo.value = { isUdfb: false, inst: '', name: '', desc: '', period: '', rd: '' }
     }
 
     if (parsed.nodes && parsed.edges) {
@@ -895,22 +991,47 @@ onConnect((params) => {
 // 3. 노드 추가 함수
 const addNode = (template) => {
   if (currentMode.value === 'monitoring') return
+  if (template.type === 'Input' && diagramInfo.value.isUdfb) {
+    return
+  }
+  if (['AOUT', 'AOUT_REL', 'APOUT', 'DOUT', 'DOUT_REL', 'DPOUT', 'MOUT', 'MOUT_REL', 'MPOUT', 'OUTPUT', 'OUTPUT_REL', 'OUT'].includes(template.type) && diagramInfo.value.isUdfb) {
+    return
+  }
+  if ((['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M', 'UAOUT', 'UDOUT', 'UMOUT', 'UDFBOUTPUT'].includes(template.type)) && !diagramInfo.value.isUdfb) {
+    return
+  }
   pushStateToUndoStack()
   const currentId = nodeCounter++ // 0번부터 계속 증가
   const id = String(currentId) // Vue Flow에서 요소를 구분할 고유 문자열 ID
 
   let parameters = []
-  const blockDef = BlockDefinitions[template.type]
-  if (blockDef && blockDef.parameters) {
-    parameters = JSON.parse(JSON.stringify(blockDef.parameters)) // 깊은 복사로 인스턴스 독립성 보장
-  } else if (template.category === 'udfb' || template.category === 'block') {
-    // UDFB나 새로 정의되지 않은 Block의 경우 기본 param 생성
-    parameters = (template.inputs || []).map((_, idx) => ({
-      name: `Para${idx + 1}`,
-      dataType: "REAL",
-      value: 1.0
-    }))
+  if (['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(template.type)) {
+    parameters = [
+      {
+        name: "NAME",
+        dataType: "HEX",
+        value: "OUT,1"
+      }
+    ]
+  } else {
+    const blockDef = BlockDefinitions[template.type]
+    if (blockDef && blockDef.parameters) {
+      parameters = JSON.parse(JSON.stringify(blockDef.parameters)) // 깊은 복사로 인스턴스 독립성 보장
+    } else if (template.category === 'udfb' || template.category === 'block') {
+      // UDFB나 새로 정의되지 않은 Block의 경우 기본 param 생성
+      parameters = (template.inputs || []).map((_, idx) => ({
+        name: `Para${idx + 1}`,
+        dataType: "REAL",
+        value: 1.0
+      }))
+    }
   }
+
+  let varType = null
+  if (template.type === 'UI.A') varType = 'constant-float'
+  else if (template.type === 'UI.D') varType = 'constant-bool'
+  else if (template.type === 'UI.M') varType = 'constant-int'
+  else if (template.category === 'constant' || template.category === 'udfbinput' || template.type === 'UDFBINPUT') varType = template.varType || 'constant-float'
 
   elements.value.push({
     id,
@@ -920,10 +1041,10 @@ const addNode = (template) => {
       id: currentId, // 화면 표출용 ID
       label: template.type, 
       category: template.category,
-      inputs: template.inputs, 
-      outputs: template.outputs,
+      inputs: template.inputs || [], 
+      outputs: template.outputs || ['OUT'],
       parameters,
-      varType: template.category === 'constant' ? 'constant-int' : null,
+      varType,
       varValue: template.category === 'input' ? '100,AI,1' : '' 
     }
   })
@@ -976,8 +1097,10 @@ const verifyFBD = () => {
 
   if (instVal === '') errors.push("Please enter the 'Inst' value in the top-left input field.")
   if (nameVal === '') errors.push("Please enter the 'Name' value in the top-left input field.")
-  if (periodVal === '') errors.push("Please enter the 'Period' value in the top-left input field.")
-  if (rdVal === '') errors.push("Please enter the 'RD' value in the top-left input field.")
+  if (!diagramInfo.value.isUdfb) {
+    if (periodVal === '') errors.push("Please enter the 'Period' value in the top-left input field.")
+    if (rdVal === '') errors.push("Please enter the 'RD' value in the top-left input field.")
+  }
 
   // 0. ID 중복 검사
   const idMap = new Map()
@@ -991,17 +1114,18 @@ const verifyFBD = () => {
     }
   })
 
-  // 1. varValue 누락 검사 (Input, Constant)
+  // 1. varValue 누락 검사 (Input, Constant, UDFBINPUT)
   data.nodes.forEach(node => {
     if (!node.data) return
     const isInput = node.data.category === 'input'
     const isConstant = node.data.category === 'constant'
+    const isUdfbInput = isVarLike(node) && !isInput && !isConstant
 
-    if (isInput || isConstant) {
+    if (isInput || isConstant || isUdfbInput) {
       const valStr = node.data.varValue === undefined || node.data.varValue === null ? '' : String(node.data.varValue).trim()
       
       if (valStr === '') {
-        const typeName = isInput ? 'Input' : 'Constant'
+        const typeName = isInput ? 'Input' : (isUdfbInput ? node.data.label : 'Constant')
         errors.push(`[${node.data.id ?? node.id}] Please enter a value for the ${node.data.label} block (${typeName}).`)
       } else if (isInput) {
         const formatRegex = /^\s*[+-]?\d+(?:\.\d+)?\s*,\s*[a-zA-Z_]+\s*,\s*[+-]?\d+(?:\.\d+)?\s*$/
@@ -1035,7 +1159,7 @@ const verifyFBD = () => {
   })
 
   // 2. 펑션 블록 연결 검사
-  const fbNodes = data.nodes.filter(node => node.data && node.data.category !== 'input' && node.data.category !== 'constant')
+  const fbNodes = data.nodes.filter(node => node.data && !isVarLike(node))
 
   if (fbNodes.length === 0) {
     errors.push("At least one Function Block (FB) must be placed.")
@@ -1063,17 +1187,25 @@ const verifyFBD = () => {
     
     let inputCount = 0
     let constantCount = 0
+    let udfbInputCount = 0
     let fbCount = 0
 
     data.nodes.forEach(node => {
       if (!node.data) return
       if (node.data.category === 'input') inputCount++
       else if (node.data.category === 'constant') constantCount++
+      else if (isVarLike(node)) udfbInputCount++
       else fbCount++
     })
 
     const linkCount = data.edges ? data.edges.length : 0
-    const summary = `- Input: ${inputCount} units\n- Constant: ${constantCount} units\n- FB: ${fbCount} units\n- Link: ${linkCount} connections`
+    let summaryParts = []
+    if (inputCount > 0) summaryParts.push(`- Input: ${inputCount} units`)
+    if (constantCount > 0) summaryParts.push(`- Constant: ${constantCount} units`)
+    if (udfbInputCount > 0) summaryParts.push(`- UDFBINPUT: ${udfbInputCount} units`)
+    summaryParts.push(`- FB: ${fbCount} units`)
+    summaryParts.push(`- Link: ${linkCount} connections`)
+    const summary = summaryParts.join('\n')
 
     alert(`FBD Validation Completed!\n\nAll Function Blocks are connected properly.\n\n[Component Summary]\n${summary}`)
   }
@@ -1102,14 +1234,14 @@ const generateMetaInfoText = () => {
       let nodeType = ''
       let nodeContent = ''
 
-      if (node.data.category === 'input' || node.data.category === 'constant') {
+      if (isVarLike(node)) {
         nodeType = 'var'
         if (node.data.category === 'input') {
           nodeContent = `"${node.data.varValue || ''}"`
         } else {
           let typeChar = 'R'
-          if (node.data.varType === 'constant-int') typeChar = 'I'
-          else if (node.data.varType === 'constant-bool') typeChar = 'B'
+          if (node.data.varType === 'constant-int' || node.data.label === 'UI.M') typeChar = 'I'
+          else if (node.data.varType === 'constant-bool' || node.data.label === 'UI.D') typeChar = 'B'
           nodeContent = `"${typeChar},${node.data.varValue || ''}"`
         }
       } else {
@@ -1147,14 +1279,14 @@ const generateMetaInfoText = () => {
       let sourceStr = ''
       let targetStr = ''
 
-      if (sourceNode.data.category === 'input' || sourceNode.data.category === 'constant') {
+      if (isVarLike(sourceNode)) {
         sourceStr = `${sourceNode.data.id}`
       } else {
         const outIndex = sourceNode.data.outputs ? sourceNode.data.outputs.indexOf(edge.sourceHandle) : 0
         sourceStr = `"${sourceNode.data.id},1,${Math.max(0, outIndex)}"`
       }
 
-      if (targetNode.data.category === 'input' || targetNode.data.category === 'constant') {
+      if (isVarLike(targetNode)) {
         targetStr = `${targetNode.data.id}`
       } else {
         const inIndex = targetNode.data.inputs ? targetNode.data.inputs.indexOf(edge.targetHandle) : 0
@@ -1166,7 +1298,7 @@ const generateMetaInfoText = () => {
   }
 
   if (data.nodes) {
-    const fbNodes = data.nodes.filter(node => node.data && node.data.category !== 'input' && node.data.category !== 'constant')
+    const fbNodes = data.nodes.filter(node => node.data && !isVarLike(node))
     const fbIds = new Set(fbNodes.map(node => node.data?.id ?? node.id))
     
     const inDegree = {}
@@ -1228,10 +1360,12 @@ const generateMetaInfoText = () => {
   if (descVal !== '') {
     prefixLines.push(`Desc=${diagramInfo.value.desc}`)
   }
-  prefixLines.push(
-    `Period=${diagramInfo.value.period}`,
-    `RD=${diagramInfo.value.rd}`
-  )
+  if (!diagramInfo.value.isUdfb) {
+    prefixLines.push(
+      `Period=${diagramInfo.value.period}`,
+      `RD=${diagramInfo.value.rd}`
+    )
+  }
   outputLines = [...prefixLines, ...outputLines]
 
   return outputLines.map(line => {
@@ -1330,9 +1464,16 @@ const handleFileUpload = (event) => {
     try {
       const parsed = JSON.parse(e.target.result)
       if (parsed.diagramInfo) {
-        diagramInfo.value = parsed.diagramInfo
+        diagramInfo.value = {
+          isUdfb: !!parsed.diagramInfo.isUdfb,
+          inst: parsed.diagramInfo.inst ?? '',
+          name: parsed.diagramInfo.name ?? '',
+          desc: parsed.diagramInfo.desc ?? '',
+          period: parsed.diagramInfo.period ?? '',
+          rd: parsed.diagramInfo.rd ?? ''
+        }
       } else {
-        diagramInfo.value = { inst: '', name: '', desc: '', period: '' }
+        diagramInfo.value = { isUdfb: false, inst: '', name: '', desc: '', period: '', rd: '' }
       }
 
       if (parsed.nodes && parsed.edges) {
@@ -1414,12 +1555,16 @@ const handleFileUpload = (event) => {
 .var-btn svg { width: 18px; height: 18px; color: #555; }
 .icon-btn { background: #fff; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; color: #333; }
 .icon-btn:hover { background: #e0e0e0; border-color: #999; }
+.icon-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #f5f5f5; border-color: #ddd; }
+.icon-btn:disabled:hover { background: #f5f5f5; border-color: #ddd; }
 .icon-btn svg { width: 22px; height: 22px; }
 
 .fbd-info-panel { position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(255, 255, 255, 0.9); padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 5px; }
 .fbd-info-row { display: flex; align-items: center; justify-content: space-between; }
 .fbd-info-row label { font-size: 12px; margin-right: 5px; width: 50px; font-weight: bold; color: #333; }
 .fbd-info-row input { width: 100px; padding: 4px; font-size: 12px; border: 1px solid #ccc; border-radius: 3px; }
+.fbd-info-row input[type="checkbox"], .fbd-info-checkbox { width: 16px !important; height: 16px; cursor: pointer; margin: 0; accent-color: #007bff; }
+.fbd-info-row input:disabled { background: #f0f0f0; cursor: not-allowed; color: #888; }
 
 /* 모달 팝업 스타일 */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }

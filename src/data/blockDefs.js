@@ -8373,9 +8373,9 @@ export const BlockDefinitions =
         ],
         "parameters": [
             {
-                "name": "SEQ",
+                "name": "NAME",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": "OUT,1"
             }
         ]
     },
@@ -8385,7 +8385,40 @@ export const BlockDefinitions =
         "outputs": [
             {
                 "name": "OUT",
-                "dataType": "REAL"
+                "dataType": "ANY"
+            }
+        ],
+        "parameters": []
+    },
+    "UI.A": {
+        "type": "UI.A",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "Real"
+            }
+        ],
+        "parameters": []
+    },
+    "UI.D": {
+        "type": "UI.D",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "Bool"
+            }
+        ],
+        "parameters": []
+    },
+    "UI.M": {
+        "type": "UI.M",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "Int"
             }
         ],
         "parameters": []
@@ -8436,9 +8469,9 @@ export const BlockDefinitions =
         ],
         "parameters": [
             {
-                "name": "SEQ",
+                "name": "NAME",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": "OUT,1"
             }
         ]
     },
@@ -8462,9 +8495,9 @@ export const BlockDefinitions =
         ],
         "parameters": [
             {
-                "name": "SEQ",
+                "name": "NAME",
                 "dataType": "HEX",
-                "value": 0.0
+                "value": "OUT,1"
             }
         ]
     },

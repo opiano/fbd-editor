@@ -1,16 +1,21 @@
 <template>
-  <div :class="['fbd-node', (data.category === 'input' || data.category === 'constant') ? 'is-small' : '', ['AOUT', 'DOUT', 'MOUT', 'AOUT_REL', 'DOUT_REL', 'MOUT_REL', 'OUT'].includes(data.label) ? 'is-out' : '', selected ? 'is-selected' : '']">
-    <div :class="['node-header', `header-${data.category}`]">[{{ data.id }}] {{ data.label }}</div>
+  <div :class="[
+    'fbd-node', 
+    (data.category === 'input' || data.category === 'constant' || data.category === 'udfbinput' || ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(data.label)) ? 'is-small' : '', 
+    ['AOUT', 'DOUT', 'MOUT', 'AOUT_REL', 'DOUT_REL', 'MOUT_REL', 'OUT', 'UAOUT', 'UDOUT', 'UMOUT'].includes(data.label) ? 'is-out' : '', 
+    selected ? 'is-selected' : ''
+  ]">
+    <div :class="['node-header', (data.category === 'udfbinput' || ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(data.label)) ? 'header-udfbinput' : `header-${data.category}`]">[{{ data.id }}] {{ data.label }}</div>
     
-    <!-- Constant Settings -->
-    <div v-if="data.category === 'constant'" class="node-content custom-var-content nodrag" style="display: flex; gap: 2px; align-items: center; padding: 4px 2px; position: relative;">
-      <select v-model="data.varType" @keydown.stop :disabled="currentMode === 'monitoring'" class="selector" style="flex: 1; margin-bottom: 0; padding: 0 1px;">
+    <!-- Constant / UDFBINPUT Settings -->
+    <div v-if="data.category === 'constant' || data.category === 'udfbinput' || ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(data.label)" class="node-content custom-var-content nodrag" style="display: flex; gap: 2px; align-items: center; padding: 4px 2px; position: relative;">
+      <select v-if="data.category === 'constant' && !['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(data.label)" v-model="data.varType" @keydown.stop :disabled="currentMode === 'monitoring'" class="selector" style="flex: 1; margin-bottom: 0; padding: 0 1px;">
         <option value="constant-int">Int</option>
         <option value="constant-bool">Bool</option>
         <option value="constant-float">Real</option>
       </select>
-      <input v-model="data.varValue" @keydown.stop :disabled="currentMode === 'monitoring'" placeholder="Val" class="var-input" style="flex: 1; margin-bottom: 0; padding: 1px; margin-right: 6px;"/>
-      <Handle type="source" :position="Position.Right" :id="data.outputs[0]" style="top: 50%; right: -4px; transform: translateY(-50%); margin: 0;" />
+      <input v-model="data.varValue" @keydown.stop :disabled="currentMode === 'monitoring'" :placeholder="(data.category === 'udfbinput' || ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(data.label)) ? 'Name' : 'Val'" class="var-input" style="flex: 1; margin-bottom: 0; padding: 1px; margin-right: 6px;"/>
+      <Handle type="source" :position="Position.Right" :id="data.outputs && data.outputs[0] ? data.outputs[0] : 'OUT'" style="top: 50%; right: -4px; transform: translateY(-50%); margin: 0;" />
       <span v-if="currentMode === 'monitoring' && realtimeData?.[data.id]?.OUT?.[0] !== undefined" class="port-rt-val-node rt-out" style="top: -12px; right: -4px;">{{ realtimeData[data.id].OUT[0] }}</span>
     </div>
 
@@ -21,9 +26,7 @@
       <span v-if="currentMode === 'monitoring' && realtimeData?.[data.id]?.OUT?.[0] !== undefined" class="port-rt-val-node rt-out" style="top: -12px; right: -4px;">{{ realtimeData[data.id].OUT[0] }}</span>
     </div>
 
-
-
-    <div class="node-body" v-if="data.category !== 'constant' && data.category !== 'input'">
+    <div class="node-body" v-if="data.category !== 'constant' && data.category !== 'input' && data.category !== 'udfbinput' && !['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(data.label)">
       <div class="ports-side">
         <div v-for="(input, index) in data.inputs" :key="input" class="port-item">
           <Handle type="target" :position="Position.Left" :id="input" />
@@ -64,6 +67,7 @@ const realtimeData = inject('realtimeData')
 
 .node-header { background: #444; color: white; padding: 2px 4px; font-size: 9px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .header-input { background: #28a745; }
+.header-udfbinput { background: #28a745; }
 .header-constant { background: #dc3545; }
 .header-block { background: #007bff; }
 .header-udfb { background: #555555; }
