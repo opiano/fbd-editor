@@ -61,31 +61,31 @@
           class="icon-btn var-btn" 
           style="padding: 6px 2px; font-size: 11px; gap: 3px;"
           :disabled="!diagramInfo.isUdfb || currentMode === 'monitoring'" 
-          :title="!diagramInfo.isUdfb ? 'UDFB 체크 시 사용 가능' : 'Add Analog Input (UI.A)'" 
-          @click="addNode({ type: 'UI.A', category: 'udfbinput', varType: 'constant-float', inputs: [], outputs: ['OUT'] })"
+          :title="!diagramInfo.isUdfb ? 'UDFB 체크 시 사용 가능' : 'Add Analog Input (UA.IN)'" 
+          @click="addNode({ type: 'UA.IN', category: 'udfbinput', varType: 'constant-float', inputs: [], outputs: ['OUT'] })"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px; flex-shrink: 0;"><circle cx="15" cy="12" r="3" /><path d="M2 12h10"/><path d="m8 8 4 4-4 4"/></svg>
-          <span>UI.A</span>
+          <span>UA.IN</span>
         </button>
         <button 
           class="icon-btn var-btn" 
           style="padding: 6px 2px; font-size: 11px; gap: 3px;"
           :disabled="!diagramInfo.isUdfb || currentMode === 'monitoring'" 
-          :title="!diagramInfo.isUdfb ? 'UDFB 체크 시 사용 가능' : 'Add Digital Input (UI.D)'" 
-          @click="addNode({ type: 'UI.D', category: 'udfbinput', varType: 'constant-bool', inputs: [], outputs: ['OUT'] })"
+          :title="!diagramInfo.isUdfb ? 'UDFB 체크 시 사용 가능' : 'Add Digital Input (UD.IN)'" 
+          @click="addNode({ type: 'UD.IN', category: 'udfbinput', varType: 'constant-bool', inputs: [], outputs: ['OUT'] })"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px; flex-shrink: 0;"><circle cx="15" cy="12" r="3" /><path d="M2 12h10"/><path d="m8 8 4 4-4 4"/></svg>
-          <span>UI.D</span>
+          <span>UD.IN</span>
         </button>
         <button 
           class="icon-btn var-btn" 
           style="padding: 6px 2px; font-size: 11px; gap: 3px;"
           :disabled="!diagramInfo.isUdfb || currentMode === 'monitoring'" 
-          :title="!diagramInfo.isUdfb ? 'UDFB 체크 시 사용 가능' : 'Add Memory/Int Input (UI.M)'" 
-          @click="addNode({ type: 'UI.M', category: 'udfbinput', varType: 'constant-int', inputs: [], outputs: ['OUT'] })"
+          :title="!diagramInfo.isUdfb ? 'UDFB 체크 시 사용 가능' : 'Add Memory/Int Input (UM.IN)'" 
+          @click="addNode({ type: 'UM.IN', category: 'udfbinput', varType: 'constant-int', inputs: [], outputs: ['OUT'] })"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px; flex-shrink: 0;"><circle cx="15" cy="12" r="3" /><path d="M2 12h10"/><path d="m8 8 4 4-4 4"/></svg>
-          <span>UI.M</span>
+          <span>UM.IN</span>
         </button>
       </div>
       <hr style="margin-bottom:15px;" />
@@ -178,9 +178,46 @@
         <div class="prop-section" v-if="selectedNode.data.parameters && selectedNode.data.parameters.length > 0">
           <h4>Parameters</h4>
           <div v-for="(param, i) in selectedNode.data.parameters" :key="'param'+i" class="prop-row param-row-compact">
-            <span class="prop-name" style="width: 80px; text-align: left;">{{ (['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(selectedNode.data.label) && (param.name === 'SEQ' || param.name === 'NAME')) ? 'NAME' : param.name.replace('Parameter', 'Para') }}</span>
-            <input v-if="param.dataType === 'HEX' || param.name === 'NAME'" type="text" v-model="param.value" @keydown.stop :disabled="currentMode === 'monitoring'" class="param-input-compact" :placeholder="param.name === 'NAME' ? 'OUT,1' : 'Value...'" />
-            <input v-else type="number" step="any" v-model="param.value" @keydown.stop :disabled="currentMode === 'monitoring'" class="param-input-compact" placeholder="Value..." />
+            <span class="prop-name" style="width: 80px; text-align: left;">{{ param.name.replace('Parameter', 'Para') }}</span>
+            <input 
+              v-if="['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(selectedNode.data.label) && param.name === 'Name'" 
+              type="text" 
+              v-model="param.value" 
+              @input="param.value = (param.value || '').replace(/[^a-zA-Z가-힣_]/g, '')"
+              @keydown.stop 
+              :disabled="currentMode === 'monitoring'" 
+              class="param-input-compact" 
+              placeholder="Name..." 
+            />
+            <input 
+              v-else-if="['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(selectedNode.data.label) && param.name === 'ID'" 
+              type="text" 
+              v-model="param.value" 
+              @input="param.value = String(param.value || '').replace(/[^0-9]/g, '')"
+              @keydown.stop 
+              :disabled="currentMode === 'monitoring'" 
+              class="param-input-compact" 
+              placeholder="ID..." 
+            />
+            <input 
+              v-else-if="param.dataType === 'HEX' || param.dataType === 'STR' || param.name === 'NAME'" 
+              type="text" 
+              v-model="param.value" 
+              @keydown.stop 
+              :disabled="currentMode === 'monitoring'" 
+              class="param-input-compact" 
+              :placeholder="param.name === 'NAME' ? 'OUT,1' : 'Value...'" 
+            />
+            <input 
+              v-else 
+              type="number" 
+              step="any" 
+              v-model="param.value" 
+              @keydown.stop 
+              :disabled="currentMode === 'monitoring'" 
+              class="param-input-compact" 
+              placeholder="Value..." 
+            />
             <span class="prop-type" style="width: 40px; text-align: center;">{{ param.dataType }}</span>
           </div>
         </div>
@@ -327,16 +364,24 @@ onNodeDragStop(() => {
 })
 
 // Helper functions for overlap check
+const isUdfbIn = (node) => {
+  if (!node || !node.data) return false
+  return node.data.category === 'udfbinput' || 
+         ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M', 'UA.IN', 'UD.IN', 'UM.IN'].includes(node.data.label)
+}
+
 const isVarLike = (node) => {
   if (!node || !node.data) return false
   return node.data.category === 'input' || 
          node.data.category === 'constant' || 
-         node.data.category === 'udfbinput' || 
-         ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(node.data.label)
+         isUdfbIn(node)
 }
 
 const getNodeWidth = (node) => {
   if (!node.data) return 120
+  if (isUdfbIn(node)) {
+    return 95
+  }
   if (isVarLike(node)) {
     return 75
   }
@@ -427,12 +472,14 @@ const selectedNode = computed(() => {
   const node = elements.value.find(el => el.id === selectedElementId.value && el.type === 'fbd') || null
   if (node && node.data && ['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(node.data.label)) {
     if (node.data.parameters) {
-      node.data.parameters.forEach(p => {
-        if (p.name === 'SEQ') p.name = 'NAME'
-        if (p.name === 'NAME' && (p.value === undefined || p.value === null || p.value === '' || p.value === 0 || p.value === 0.0 || p.value === '0' || p.value === '0.0')) {
-          p.value = 'OUT,1'
-        }
-      })
+      if (node.data.parameters.length === 1 && (node.data.parameters[0].name === 'NAME' || node.data.parameters[0].name === 'SEQ')) {
+        const rawVal = String(node.data.parameters[0].value || 'OUT,1')
+        const parts = rawVal.split(',')
+        node.data.parameters = [
+          { name: 'Name', dataType: 'STR', value: parts[0] || 'OUT' },
+          { name: 'ID', dataType: 'INT', value: parts[1] !== undefined && parts[1] !== '' ? (isNaN(Number(parts[1])) ? parts[1] : Number(parts[1])) : 1 }
+        ]
+      }
     }
   }
   return node
@@ -812,9 +859,9 @@ const isMenuItemVisible = (subGroup, item) => {
 
 const getOutputType = (node, output) => {
   if (!node || !node.data) return 'ANY'
-  if (['UI.A', 'UIA'].includes(node.data.label)) return 'Real'
-  if (['UI.D', 'UID'].includes(node.data.label)) return 'Bool'
-  if (['UI.M', 'UIM'].includes(node.data.label)) return 'Int'
+  if (['UI.A', 'UIA', 'UA.IN', 'UAIN'].includes(node.data.label)) return 'Real'
+  if (['UI.D', 'UID', 'UD.IN', 'UDIN'].includes(node.data.label)) return 'Bool'
+  if (['UI.M', 'UIM', 'UM.IN', 'UMIN'].includes(node.data.label)) return 'Int'
   if (['UDFBINPUT', 'UI'].includes(node.data.label) || node.data.category === 'udfbinput') return 'ANY'
   return BlockDefinitions[node.data.label] ? BlockDefinitions[node.data.label].outputs?.find(o => o.name === output)?.dataType || 'ANY' : 'ANY'
 }
@@ -997,7 +1044,7 @@ const addNode = (template) => {
   if (['AOUT', 'AOUT_REL', 'APOUT', 'DOUT', 'DOUT_REL', 'DPOUT', 'MOUT', 'MOUT_REL', 'MPOUT', 'OUTPUT', 'OUTPUT_REL', 'OUT'].includes(template.type) && diagramInfo.value.isUdfb) {
     return
   }
-  if ((['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M', 'UAOUT', 'UDOUT', 'UMOUT', 'UDFBOUTPUT'].includes(template.type)) && !diagramInfo.value.isUdfb) {
+  if ((['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M', 'UA.IN', 'UD.IN', 'UM.IN', 'UAOUT', 'UDOUT', 'UMOUT', 'UDFBOUTPUT'].includes(template.type)) && !diagramInfo.value.isUdfb) {
     return
   }
   pushStateToUndoStack()
@@ -1008,9 +1055,14 @@ const addNode = (template) => {
   if (['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(template.type)) {
     parameters = [
       {
-        name: "NAME",
-        dataType: "HEX",
-        value: "OUT,1"
+        name: "Name",
+        dataType: "STR",
+        value: "OUT"
+      },
+      {
+        name: "ID",
+        dataType: "INT",
+        value: 1
       }
     ]
   } else {
@@ -1028,9 +1080,9 @@ const addNode = (template) => {
   }
 
   let varType = null
-  if (template.type === 'UI.A') varType = 'constant-float'
-  else if (template.type === 'UI.D') varType = 'constant-bool'
-  else if (template.type === 'UI.M') varType = 'constant-int'
+  if (['UI.A', 'UA.IN'].includes(template.type)) varType = 'constant-float'
+  else if (['UI.D', 'UD.IN'].includes(template.type)) varType = 'constant-bool'
+  else if (['UI.M', 'UM.IN'].includes(template.type)) varType = 'constant-int'
   else if (template.category === 'constant' || template.category === 'udfbinput' || template.type === 'UDFBINPUT') varType = template.varType || 'constant-float'
 
   elements.value.push({
@@ -1045,7 +1097,9 @@ const addNode = (template) => {
       outputs: template.outputs || ['OUT'],
       parameters,
       varType,
-      varValue: template.category === 'input' ? '100,AI,1' : '' 
+      varValue: template.category === 'input' ? '100,AI,1' : '',
+      varName: template.varName || '',
+      varId: template.varId || ''
     }
   })
 }
@@ -1114,18 +1168,33 @@ const verifyFBD = () => {
     }
   })
 
-  // 1. varValue 누락 검사 (Input, Constant, UDFBINPUT)
+  // 1. varValue / varName, varId 누락 및 형식 검사 (Input, Constant, UDFBINPUT)
   data.nodes.forEach(node => {
     if (!node.data) return
     const isInput = node.data.category === 'input'
     const isConstant = node.data.category === 'constant'
     const isUdfbInput = isVarLike(node) && !isInput && !isConstant
 
-    if (isInput || isConstant || isUdfbInput) {
+    if (isUdfbInput) {
+      const nameStr = node.data.varName === undefined || node.data.varName === null ? '' : String(node.data.varName).trim()
+      const idStr = node.data.varId === undefined || node.data.varId === null ? '' : String(node.data.varId).trim()
+
+      if (nameStr === '') {
+        errors.push(`[${node.data.id ?? node.id}] Please enter a Name for the ${node.data.label} block.`)
+      } else if (!/^[a-zA-Z가-힣_]+$/.test(nameStr)) {
+        errors.push(`[${node.data.id ?? node.id}] The Name of the ${node.data.label} block must contain only letters (no numbers).`)
+      }
+
+      if (idStr === '') {
+        errors.push(`[${node.data.id ?? node.id}] Please enter an ID for the ${node.data.label} block.`)
+      } else if (!/^\d+$/.test(idStr)) {
+        errors.push(`[${node.data.id ?? node.id}] The ID of the ${node.data.label} block must contain only numbers.`)
+      }
+    } else if (isInput || isConstant) {
       const valStr = node.data.varValue === undefined || node.data.varValue === null ? '' : String(node.data.varValue).trim()
       
       if (valStr === '') {
-        const typeName = isInput ? 'Input' : (isUdfbInput ? node.data.label : 'Constant')
+        const typeName = isInput ? 'Input' : 'Constant'
         errors.push(`[${node.data.id ?? node.id}] Please enter a value for the ${node.data.label} block (${typeName}).`)
       } else if (isInput) {
         const formatRegex = /^\s*[+-]?\d+(?:\.\d+)?\s*,\s*[a-zA-Z_]+\s*,\s*[+-]?\d+(?:\.\d+)?\s*$/
@@ -1155,6 +1224,28 @@ const verifyFBD = () => {
           }
         }
       })
+    }
+
+    // Check parameters for UAOUT, UDOUT, UMOUT (Name: letters only, ID: numbers only)
+    const isUdfbOutputBlock = ['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(node.data.label)
+    if (isUdfbOutputBlock && node.data.parameters) {
+      const nameParam = node.data.parameters.find(p => p.name.toLowerCase() === 'name')
+      const idParam = node.data.parameters.find(p => p.name.toLowerCase() === 'id')
+
+      const nameVal = nameParam && nameParam.value !== undefined && nameParam.value !== null ? String(nameParam.value).trim() : ''
+      const idVal = idParam && idParam.value !== undefined && idParam.value !== null ? String(idParam.value).trim() : ''
+
+      if (nameVal === '') {
+        errors.push(`[${node.data.id ?? node.id}] Please enter a Name parameter for the ${node.data.label} block.`)
+      } else if (!/^[a-zA-Z가-힣_]+$/.test(nameVal)) {
+        errors.push(`[${node.data.id ?? node.id}] The Name parameter of the ${node.data.label} block must contain only letters (no numbers).`)
+      }
+
+      if (idVal === '') {
+        errors.push(`[${node.data.id ?? node.id}] Please enter an ID parameter for the ${node.data.label} block.`)
+      } else if (!/^\d+$/.test(idVal)) {
+        errors.push(`[${node.data.id ?? node.id}] The ID parameter of the ${node.data.label} block must contain only numbers.`)
+      }
     }
   })
 
@@ -1238,10 +1329,18 @@ const generateMetaInfoText = () => {
         nodeType = 'var'
         if (node.data.category === 'input') {
           nodeContent = `"${node.data.varValue || ''}"`
+        } else if (isUdfbIn(node)) {
+          let typeChar = 'R'
+          if (node.data.varType === 'constant-int' || ['UI.M', 'UM.IN'].includes(node.data.label)) typeChar = 'I'
+          else if (node.data.varType === 'constant-bool' || ['UI.D', 'UD.IN'].includes(node.data.label)) typeChar = 'B'
+
+          const nameVal = node.data.varName !== undefined && node.data.varName !== null ? String(node.data.varName).trim() : ''
+          const idVal = node.data.varId !== undefined && node.data.varId !== null ? String(node.data.varId).trim() : ''
+          nodeContent = `"${nameVal},${typeChar},${idVal}"`
         } else {
           let typeChar = 'R'
-          if (node.data.varType === 'constant-int' || node.data.label === 'UI.M') typeChar = 'I'
-          else if (node.data.varType === 'constant-bool' || node.data.label === 'UI.D') typeChar = 'B'
+          if (node.data.varType === 'constant-int' || ['UI.M', 'UM.IN'].includes(node.data.label)) typeChar = 'I'
+          else if (node.data.varType === 'constant-bool' || ['UI.D', 'UD.IN'].includes(node.data.label)) typeChar = 'B'
           nodeContent = `"${typeChar},${node.data.varValue || ''}"`
         }
       } else {
@@ -1258,7 +1357,19 @@ const generateMetaInfoText = () => {
         
         nodeContent = `${fbName},"${inputLinks.join(',')}"`
 
-        if (node.data.parameters && node.data.parameters.length > 0) {
+        if (['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(fbName) && node.data.parameters) {
+          const nameParam = node.data.parameters.find(p => p.name.toLowerCase() === 'name')
+          const idParam = node.data.parameters.find(p => p.name.toLowerCase() === 'id')
+          let nameVal = nameParam && nameParam.value !== undefined && nameParam.value !== null ? String(nameParam.value).trim() : ''
+          let idVal = idParam && idParam.value !== undefined && idParam.value !== null ? String(idParam.value).trim() : ''
+          
+          if (!idParam && nameParam && String(nameParam.value).includes(',')) {
+            const parts = String(nameParam.value).split(',')
+            nameVal = parts[0]
+            idVal = parts[1]
+          }
+          nodeContent += `,"${nameVal},${idVal}"`
+        } else if (node.data.parameters && node.data.parameters.length > 0) {
           const paramValues = node.data.parameters.map(p => p.value !== undefined && p.value !== null ? p.value : '').join(',')
           nodeContent += `,"${paramValues}"`
         }
@@ -1477,11 +1588,29 @@ const handleFileUpload = (event) => {
       }
 
       if (parsed.nodes && parsed.edges) {
+        const processedNodes = parsed.nodes.map(node => {
+          if (node.data) {
+            if (isUdfbIn(node)) {
+              if (node.data.varName === undefined) node.data.varName = node.data.varValue || ''
+              if (node.data.varId === undefined) node.data.varId = ''
+            } else if (['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(node.data.label)) {
+              if (node.data.parameters && node.data.parameters.length === 1 && (node.data.parameters[0].name === 'NAME' || node.data.parameters[0].name === 'SEQ')) {
+                const raw = String(node.data.parameters[0].value || 'OUT,1')
+                const [n, i] = raw.split(',')
+                node.data.parameters = [
+                  { name: 'Name', dataType: 'STR', value: n || 'OUT' },
+                  { name: 'ID', dataType: 'INT', value: i !== undefined && i !== '' ? (isNaN(Number(i)) ? i : Number(i)) : 1 }
+                ]
+              }
+            }
+          }
+          return node
+        })
         const processedEdges = parsed.edges.map(edge => ({
           ...edge,
           label: String(edge.id)
         }))
-        elements.value = [...parsed.nodes, ...processedEdges]
+        elements.value = [...processedNodes, ...processedEdges]
         
         let maxId = -1
         parsed.nodes.forEach(node => {

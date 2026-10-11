@@ -1,32 +1,57 @@
 <template>
   <div :class="[
     'fbd-node', 
-    (data.category === 'input' || data.category === 'constant' || data.category === 'udfbinput' || ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(data.label)) ? 'is-small' : '', 
+    (data.category === 'input' || data.category === 'constant') ? 'is-small' : '', 
+    (data.category === 'udfbinput' || ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M', 'UA.IN', 'UD.IN', 'UM.IN'].includes(data.label)) ? 'is-udfb-in' : '',
     ['AOUT', 'DOUT', 'MOUT', 'AOUT_REL', 'DOUT_REL', 'MOUT_REL', 'OUT', 'UAOUT', 'UDOUT', 'UMOUT'].includes(data.label) ? 'is-out' : '', 
     selected ? 'is-selected' : ''
   ]">
-    <div :class="['node-header', (data.category === 'udfbinput' || ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(data.label)) ? 'header-udfbinput' : `header-${data.category}`]">[{{ data.id }}] {{ data.label }}</div>
+    <div :class="['node-header', (data.category === 'udfbinput' || ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M', 'UA.IN', 'UD.IN', 'UM.IN'].includes(data.label)) ? 'header-udfbinput' : `header-${data.category}`]">[{{ data.id }}] {{ data.label }}</div>
     
-    <!-- Constant / UDFBINPUT Settings -->
-    <div v-if="data.category === 'constant' || data.category === 'udfbinput' || ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(data.label)" class="node-content custom-var-content nodrag" style="display: flex; gap: 2px; align-items: center; padding: 4px 2px; position: relative;">
-      <select v-if="data.category === 'constant' && !['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(data.label)" v-model="data.varType" @keydown.stop :disabled="currentMode === 'monitoring'" class="selector" style="flex: 1; margin-bottom: 0; padding: 0 1px;">
+    <!-- UDFB Input Settings (Name, ID) -->
+    <div v-if="data.category === 'udfbinput' || ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M', 'UA.IN', 'UD.IN', 'UM.IN'].includes(data.label)" class="node-content custom-var-content nodrag" style="display: flex; gap: 2px; align-items: center; padding: 4px 2px; position: relative;">
+      <input 
+        v-model="data.varName" 
+        @keydown.stop 
+        @input="data.varName = (data.varName || '').replace(/[^a-zA-Z가-힣_]/g, '')"
+        :disabled="currentMode === 'monitoring'" 
+        placeholder="Name" 
+        class="var-input" 
+        style="flex: 1.2; min-width: 0; margin-bottom: 0; padding: 1px 2px;"
+      />
+      <input 
+        v-model="data.varId" 
+        @keydown.stop 
+        @input="data.varId = (data.varId || '').replace(/[^0-9]/g, '')"
+        :disabled="currentMode === 'monitoring'" 
+        placeholder="ID" 
+        class="var-input" 
+        style="flex: 0.8; min-width: 0; margin-bottom: 0; padding: 1px 2px; margin-right: 6px;"
+      />
+      <Handle type="source" :position="Position.Right" :id="data.outputs && data.outputs[0] ? data.outputs[0] : 'OUT'" style="top: 50%; right: -4px; transform: translateY(-50%); margin: 0;" />
+      <span v-if="currentMode === 'monitoring' && realtimeData?.[data.id]?.OUT?.[0] !== undefined" class="port-rt-val-node rt-out" style="top: -12px; right: -4px;">{{ realtimeData[data.id].OUT[0] }}</span>
+    </div>
+
+    <!-- Constant Settings -->
+    <div v-else-if="data.category === 'constant'" class="node-content custom-var-content nodrag" style="display: flex; gap: 2px; align-items: center; padding: 4px 2px; position: relative;">
+      <select v-model="data.varType" @keydown.stop :disabled="currentMode === 'monitoring'" class="selector" style="flex: 1; margin-bottom: 0; padding: 0 1px;">
         <option value="constant-int">Int</option>
         <option value="constant-bool">Bool</option>
         <option value="constant-float">Real</option>
       </select>
-      <input v-model="data.varValue" @keydown.stop :disabled="currentMode === 'monitoring'" :placeholder="(data.category === 'udfbinput' || ['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(data.label)) ? 'Name' : 'Val'" class="var-input" style="flex: 1; margin-bottom: 0; padding: 1px; margin-right: 6px;"/>
+      <input v-model="data.varValue" @keydown.stop :disabled="currentMode === 'monitoring'" placeholder="Val" class="var-input" style="flex: 1; margin-bottom: 0; padding: 1px; margin-right: 6px;"/>
       <Handle type="source" :position="Position.Right" :id="data.outputs && data.outputs[0] ? data.outputs[0] : 'OUT'" style="top: 50%; right: -4px; transform: translateY(-50%); margin: 0;" />
       <span v-if="currentMode === 'monitoring' && realtimeData?.[data.id]?.OUT?.[0] !== undefined" class="port-rt-val-node rt-out" style="top: -12px; right: -4px;">{{ realtimeData[data.id].OUT[0] }}</span>
     </div>
 
     <!-- Input Settings -->
-    <div v-if="data.category === 'input'" class="node-content custom-var-content nodrag" style="display: flex; align-items: center; padding: 4px 2px; position: relative;">
+    <div v-else-if="data.category === 'input'" class="node-content custom-var-content nodrag" style="display: flex; align-items: center; padding: 4px 2px; position: relative;">
       <input v-model="data.varValue" @keydown.stop :disabled="currentMode === 'monitoring'" placeholder="Input Name..." class="var-input" style="margin-bottom: 0; margin-right: 6px; flex: 1;"/>
       <Handle type="source" :position="Position.Right" :id="data.outputs[0]" style="top: 50%; right: -4px; transform: translateY(-50%); margin: 0;" />
       <span v-if="currentMode === 'monitoring' && realtimeData?.[data.id]?.OUT?.[0] !== undefined" class="port-rt-val-node rt-out" style="top: -12px; right: -4px;">{{ realtimeData[data.id].OUT[0] }}</span>
     </div>
 
-    <div class="node-body" v-if="data.category !== 'constant' && data.category !== 'input' && data.category !== 'udfbinput' && !['UDFBINPUT', 'UI', 'UI.A', 'UI.D', 'UI.M'].includes(data.label)">
+    <div class="node-body" v-else>
       <div class="ports-side">
         <div v-for="(input, index) in data.inputs" :key="input" class="port-item">
           <Handle type="target" :position="Position.Left" :id="input" />
@@ -58,12 +83,13 @@ const realtimeData = inject('realtimeData')
 .fbd-node { background: #fff; border: 1.5px solid #222; border-radius: 3px; min-width: 80px; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
 .fbd-node.is-selected { border-color: #ff007f; box-shadow: 0 0 0 4px rgba(255, 0, 127, 0.4); outline: none; z-index: 1000; }
 .fbd-node.is-small { width: 75px; min-width: 75px; max-width: 75px; font-size: 10px; }
+.fbd-node.is-udfb-in { width: 95px; min-width: 95px; max-width: 95px; font-size: 10px; }
 .fbd-node.is-out { width: 100px; min-width: 100px; max-width: 100px; }
-.fbd-node.is-small .node-body { padding: 4px 0; }
-.fbd-node.is-small .node-content { padding: 4px 2px 0 2px; }
-.fbd-node.is-small .selector, .fbd-node.is-small .var-input { font-size: 9px; padding: 1px; margin-bottom: 2px; }
-.fbd-node.is-small .port-item { height: 16px; padding: 0 8px; }
-.fbd-node.is-small .port-text { font-size: 8px; }
+.fbd-node.is-small .node-body, .fbd-node.is-udfb-in .node-body { padding: 4px 0; }
+.fbd-node.is-small .node-content, .fbd-node.is-udfb-in .node-content { padding: 4px 2px 0 2px; }
+.fbd-node.is-small .selector, .fbd-node.is-small .var-input, .fbd-node.is-udfb-in .var-input { font-size: 9px; padding: 1px; margin-bottom: 2px; }
+.fbd-node.is-small .port-item, .fbd-node.is-udfb-in .port-item { height: 16px; padding: 0 8px; }
+.fbd-node.is-small .port-text, .fbd-node.is-udfb-in .port-text { font-size: 8px; }
 
 .node-header { background: #444; color: white; padding: 2px 4px; font-size: 9px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .header-input { background: #28a745; }

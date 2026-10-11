@@ -8373,9 +8373,14 @@ export const BlockDefinitions =
         ],
         "parameters": [
             {
-                "name": "NAME",
-                "dataType": "HEX",
-                "value": "OUT,1"
+                "name": "Name",
+                "dataType": "STR",
+                "value": "OUT"
+            },
+            {
+                "name": "ID",
+                "dataType": "INT",
+                "value": 1
             }
         ]
     },
@@ -8414,6 +8419,39 @@ export const BlockDefinitions =
     },
     "UI.M": {
         "type": "UI.M",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "Int"
+            }
+        ],
+        "parameters": []
+    },
+    "UA.IN": {
+        "type": "UA.IN",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "Real"
+            }
+        ],
+        "parameters": []
+    },
+    "UD.IN": {
+        "type": "UD.IN",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "OUT",
+                "dataType": "Bool"
+            }
+        ],
+        "parameters": []
+    },
+    "UM.IN": {
+        "type": "UM.IN",
         "inputs": [],
         "outputs": [
             {
@@ -8469,9 +8507,14 @@ export const BlockDefinitions =
         ],
         "parameters": [
             {
-                "name": "NAME",
-                "dataType": "HEX",
-                "value": "OUT,1"
+                "name": "Name",
+                "dataType": "STR",
+                "value": "OUT"
+            },
+            {
+                "name": "ID",
+                "dataType": "INT",
+                "value": 1
             }
         ]
     },
@@ -8495,9 +8538,14 @@ export const BlockDefinitions =
         ],
         "parameters": [
             {
-                "name": "NAME",
-                "dataType": "HEX",
-                "value": "OUT,1"
+                "name": "Name",
+                "dataType": "STR",
+                "value": "OUT"
+            },
+            {
+                "name": "ID",
+                "dataType": "INT",
+                "value": 1
             }
         ]
     },
