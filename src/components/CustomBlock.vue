@@ -13,7 +13,7 @@
       <input 
         v-model="data.varName" 
         @keydown.stop 
-        @input="data.varName = (data.varName || '').replace(/[^a-zA-Z가-힣_]/g, '')"
+        @input="data.varName = (data.varName || '').replace(/[^a-zA-Z가-힣0-9_]/g, '').replace(/^[0-9]+/, '')"
         :disabled="currentMode === 'monitoring'" 
         placeholder="Name" 
         class="var-input" 

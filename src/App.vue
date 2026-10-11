@@ -183,7 +183,7 @@
               v-if="['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(selectedNode.data.label) && param.name === 'Name'" 
               type="text" 
               v-model="param.value" 
-              @input="param.value = (param.value || '').replace(/[^a-zA-Z가-힣_]/g, '')"
+              @input="param.value = (param.value || '').replace(/[^a-zA-Z가-힣0-9_]/g, '').replace(/^[0-9]+/, '')"
               @keydown.stop 
               :disabled="currentMode === 'monitoring'" 
               class="param-input-compact" 
@@ -1181,8 +1181,8 @@ const verifyFBD = () => {
 
       if (nameStr === '') {
         errors.push(`[${node.data.id ?? node.id}] Please enter a Name for the ${node.data.label} block.`)
-      } else if (!/^[a-zA-Z가-힣_]+$/.test(nameStr)) {
-        errors.push(`[${node.data.id ?? node.id}] The Name of the ${node.data.label} block must contain only letters (no numbers).`)
+      } else if (!/^[a-zA-Z가-힣_][a-zA-Z가-힣0-9_]*$/.test(nameStr)) {
+        errors.push(`[${node.data.id ?? node.id}] The Name of the ${node.data.label} block must start with a letter and contain only letters, numbers, or underscores.`)
       }
 
       if (idStr === '') {
@@ -1237,8 +1237,8 @@ const verifyFBD = () => {
 
       if (nameVal === '') {
         errors.push(`[${node.data.id ?? node.id}] Please enter a Name parameter for the ${node.data.label} block.`)
-      } else if (!/^[a-zA-Z가-힣_]+$/.test(nameVal)) {
-        errors.push(`[${node.data.id ?? node.id}] The Name parameter of the ${node.data.label} block must contain only letters (no numbers).`)
+      } else if (!/^[a-zA-Z가-힣_][a-zA-Z가-힣0-9_]*$/.test(nameVal)) {
+        errors.push(`[${node.data.id ?? node.id}] The Name parameter of the ${node.data.label} block must start with a letter and contain only letters, numbers, or underscores.`)
       }
 
       if (idVal === '') {
