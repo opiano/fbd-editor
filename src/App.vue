@@ -1463,10 +1463,14 @@ const generateMetaInfoText = () => {
     }
   }
 
-  const prefixLines = [
+  const prefixLines = []
+  if (diagramInfo.value.isUdfb) {
+    prefixLines.push('UDFB')
+  }
+  prefixLines.push(
     `Inst=${diagramInfo.value.inst}`,
     `Name=${diagramInfo.value.name}`,
-  ]
+  )
   const descVal = diagramInfo.value.desc === undefined || diagramInfo.value.desc === null ? '' : String(diagramInfo.value.desc).trim()
   if (descVal !== '') {
     prefixLines.push(`Desc=${diagramInfo.value.desc}`)
