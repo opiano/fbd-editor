@@ -1465,7 +1465,7 @@ const generateMetaInfoText = () => {
 
   const prefixLines = []
   if (diagramInfo.value.isUdfb) {
-    prefixLines.push('UDFB')
+    prefixLines.push('TYPE=UDFB')
   }
   prefixLines.push(
     `Inst=${diagramInfo.value.inst}`,
