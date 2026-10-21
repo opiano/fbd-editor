@@ -175,7 +175,7 @@
           </div>
         </div>
 
-        <div class="prop-section" v-if="selectedNode.data.parameters && selectedNode.data.parameters.length > 0">
+        <div class="prop-section" v-if="selectedNode.data.parameters && selectedNode.data.parameters.length > 0 && selectedNode.data.category !== 'udfb' && !selectedNode.data.label.startsWith('UDFB')">
           <h4>Parameters</h4>
           <div v-for="(param, i) in selectedNode.data.parameters" :key="'param'+i" class="prop-row param-row-compact">
             <span class="prop-name" style="width: 80px; text-align: left;">{{ param.name.replace('Parameter', 'Para') }}</span>
@@ -250,8 +250,18 @@
       <div class="modal-content" style="width: 300px; max-width: 90vw;">
         <h3>Add UDFB</h3>
         <div style="margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
-          <label style="font-weight:bold; white-space: nowrap;">Name:</label>
-          <input type="text" v-model="udfbName" @keydown.stop placeholder="Block name" style="width:100px; padding:6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
+          <label style="font-weight:bold; white-space: nowrap;">Inst:</label>
+          <input 
+            type="number" 
+            v-model="udfbInst" 
+            @keydown.stop="handleInstKeydown" 
+            @input="handleInstInput" 
+            @keyup.enter="confirmUdfb"
+            min="1" 
+            step="1"
+            placeholder="1" 
+            style="width:100px; padding:6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" 
+          />
         </div>
         <div style="margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
           <label style="font-weight:bold; white-space: nowrap;">Inputs:</label>
@@ -503,13 +513,24 @@ const handleLogin = () => {
 const isVerified = ref(false)
 
 const showUdfbModal = ref(false)
-const udfbName = ref('')
+const udfbInst = ref(1)
 const udfbInCount = ref(2)
 const udfbOutCount = ref(1)
 
+const handleInstKeydown = (e) => {
+  if (['-', '+', 'e', 'E', '.'].includes(e.key)) {
+    e.preventDefault()
+  }
+}
+
+const handleInstInput = (e) => {
+  let val = String(e.target.value || '').replace(/[^0-9]/g, '').replace(/^0+/, '')
+  udfbInst.value = val
+}
+
 const openUdfbModal = () => {
   if (currentMode.value === 'monitoring' || diagramInfo.value.isUdfb) return
-  udfbName.value = ''
+  udfbInst.value = 1
   udfbInCount.value = 2
   udfbOutCount.value = 1
   showUdfbModal.value = true
@@ -517,13 +538,18 @@ const openUdfbModal = () => {
 
 const confirmUdfb = () => {
   if (currentMode.value === 'monitoring') return
+  const instNum = parseInt(udfbInst.value, 10)
+  if (!instNum || instNum < 1) {
+    alert('Inst는 1 이상의 숫자만 입력 가능합니다.')
+    return
+  }
   const inCount = Math.max(0, parseInt(udfbInCount.value) || 0)
   const outCount = Math.max(0, parseInt(udfbOutCount.value) || 0)
   
   const inputs = Array.from({ length: inCount }, (_, i) => `IN${i + 1}`)
   const outputs = Array.from({ length: outCount }, (_, i) => `OUT${i + 1}`)
   
-  const typeName = udfbName.value.trim() ? `UDFB, ${udfbName.value.trim()}` : 'UDFB'
+  const typeName = `UDFB-${instNum}`
   addNode({ type: typeName, category: 'udfb', inputs, outputs })
   showUdfbModal.value = false
 }
@@ -1069,8 +1095,10 @@ const addNode = (template) => {
     const blockDef = BlockDefinitions[template.type]
     if (blockDef && blockDef.parameters) {
       parameters = JSON.parse(JSON.stringify(blockDef.parameters)) // 깊은 복사로 인스턴스 독립성 보장
-    } else if (template.category === 'udfb' || template.category === 'block') {
-      // UDFB나 새로 정의되지 않은 Block의 경우 기본 param 생성
+    } else if (template.category === 'udfb') {
+      parameters = []
+    } else if (template.category === 'block') {
+      // 새로 정의되지 않은 Block의 경우 기본 param 생성
       parameters = (template.inputs || []).map((_, idx) => ({
         name: `Para${idx + 1}`,
         dataType: "REAL",
@@ -1369,7 +1397,7 @@ const generateMetaInfoText = () => {
             idVal = parts[1]
           }
           nodeContent += `,"${nameVal},${idVal}"`
-        } else if (node.data.parameters && node.data.parameters.length > 0) {
+        } else if (node.data.category !== 'udfb' && !fbName.startsWith('UDFB-') && node.data.parameters && node.data.parameters.length > 0) {
           const paramValues = node.data.parameters.map(p => p.value !== undefined && p.value !== null ? p.value : '').join(',')
           nodeContent += `,"${paramValues}"`
         }
