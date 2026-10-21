@@ -483,11 +483,12 @@ const selectedNode = computed(() => {
   if (node && node.data && ['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(node.data.label)) {
     if (node.data.parameters) {
       if (node.data.parameters.length === 1 && (node.data.parameters[0].name === 'NAME' || node.data.parameters[0].name === 'SEQ')) {
-        const rawVal = String(node.data.parameters[0].value || 'OUT,1')
+        const defaultId = ['UAOUT', 'UA.OUT', 'UAO'].includes(node.data.label) ? 0 : 1
+        const rawVal = String(node.data.parameters[0].value || `OUT,${defaultId}`)
         const parts = rawVal.split(',')
         node.data.parameters = [
           { name: 'Name', dataType: 'STR', value: parts[0] || 'OUT' },
-          { name: 'ID', dataType: 'INT', value: parts[1] !== undefined && parts[1] !== '' ? (isNaN(Number(parts[1])) ? parts[1] : Number(parts[1])) : 1 }
+          { name: 'ID', dataType: 'INT', value: parts[1] !== undefined && parts[1] !== '' ? (isNaN(Number(parts[1])) ? parts[1] : Number(parts[1])) : defaultId }
         ]
       }
     }
@@ -1079,6 +1080,7 @@ const addNode = (template) => {
 
   let parameters = []
   if (['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(template.type)) {
+    const defaultId = ['UAOUT', 'UA.OUT', 'UAO'].includes(template.type) ? 0 : 1
     parameters = [
       {
         name: "Name",
@@ -1088,7 +1090,7 @@ const addNode = (template) => {
       {
         name: "ID",
         dataType: "INT",
-        value: 1
+        value: defaultId
       }
     ]
   } else {
@@ -1276,6 +1278,72 @@ const verifyFBD = () => {
       }
     }
   })
+
+  // 1.5. UDFB 모드 전용 ID 검사 (UA.IN, UA.OUT)
+  if (diagramInfo.value.isUdfb) {
+    const checkSequentialIds = (targetNodes, labelName, getIdFn) => {
+      if (!targetNodes || targetNodes.length === 0) return
+
+      const parsedItems = []
+      let hasInvalidFormat = false
+
+      targetNodes.forEach(node => {
+        const idVal = getIdFn(node)
+        const idStr = idVal === undefined || idVal === null ? '' : String(idVal).trim()
+        if (idStr === '' || !/^\d+$/.test(idStr)) {
+          hasInvalidFormat = true
+        } else {
+          parsedItems.push({ id: parseInt(idStr, 10), node })
+        }
+      })
+
+      if (hasInvalidFormat) return
+
+      // 1) 중복 ID 검사
+      const idCounts = {}
+      const duplicates = []
+      parsedItems.forEach(item => {
+        idCounts[item.id] = (idCounts[item.id] || 0) + 1
+        if (idCounts[item.id] === 2) {
+          duplicates.push(item.id)
+        }
+      })
+
+      if (duplicates.length > 0) {
+        errors.push(`[${labelName}] Duplicate IDs found: ${duplicates.sort((a, b) => a - b).join(', ')}. IDs must be unique. (ID는 중복될 수 없습니다.)`)
+      }
+
+      // 2) 0번 필수 및 0 ~ n-1 연속성(빈 번호 없음) 검사
+      const idSet = new Set(parsedItems.map(item => item.id))
+      const n = targetNodes.length
+      const missingIds = []
+      for (let i = 0; i < n; i++) {
+        if (!idSet.has(i)) {
+          missingIds.push(i)
+        }
+      }
+
+      if (missingIds.length > 0) {
+        const currentIds = Array.from(idSet).sort((a, b) => a - b)
+        if (!idSet.has(0)) {
+          errors.push(`[${labelName}] ID 0 is required. IDs must be sequential from 0 to ${n - 1} without missing numbers. (Current: [${currentIds.join(', ')}], Missing: [${missingIds.join(', ')}]) (반드시 0번이 있어야 하며, 0부터 ${n - 1}까지 빈 번호 없이 연속되어야 합니다.)`)
+        } else {
+          errors.push(`[${labelName}] IDs must be sequential from 0 to ${n - 1} without any gaps. (Current: [${currentIds.join(', ')}], Missing: [${missingIds.join(', ')}]) (0부터 ${n - 1}까지 빈 번호 없이 연속되어야 합니다.)`)
+        }
+      }
+    }
+
+    // UA.IN 검사
+    const uaInNodes = data.nodes.filter(node => node.data && ['UA.IN', 'UI.A', 'UAIN'].includes(node.data.label))
+    checkSequentialIds(uaInNodes, 'UA.IN', node => node.data.varId)
+
+    // UA.OUT (UAOUT) 검사
+    const uaOutNodes = data.nodes.filter(node => node.data && ['UAOUT', 'UA.OUT', 'UAO'].includes(node.data.label))
+    checkSequentialIds(uaOutNodes, 'UA.OUT', node => {
+      const idParam = node.data.parameters ? node.data.parameters.find(p => p.name.toLowerCase() === 'id') : null
+      return idParam ? idParam.value : null
+    })
+  }
 
   // 2. 펑션 블록 연결 검사
   const fbNodes = data.nodes.filter(node => node.data && !isVarLike(node))
@@ -1627,11 +1695,12 @@ const handleFileUpload = (event) => {
               if (node.data.varId === undefined) node.data.varId = ''
             } else if (['UAOUT', 'UDOUT', 'UMOUT', 'UAO', 'UDO', 'UMO'].includes(node.data.label)) {
               if (node.data.parameters && node.data.parameters.length === 1 && (node.data.parameters[0].name === 'NAME' || node.data.parameters[0].name === 'SEQ')) {
-                const raw = String(node.data.parameters[0].value || 'OUT,1')
+                const defaultId = ['UAOUT', 'UA.OUT', 'UAO'].includes(node.data.label) ? 0 : 1
+                const raw = String(node.data.parameters[0].value || `OUT,${defaultId}`)
                 const [n, i] = raw.split(',')
                 node.data.parameters = [
                   { name: 'Name', dataType: 'STR', value: n || 'OUT' },
-                  { name: 'ID', dataType: 'INT', value: i !== undefined && i !== '' ? (isNaN(Number(i)) ? i : Number(i)) : 1 }
+                  { name: 'ID', dataType: 'INT', value: i !== undefined && i !== '' ? (isNaN(Number(i)) ? i : Number(i)) : defaultId }
                 ]
               }
             }
