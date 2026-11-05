@@ -1631,9 +1631,11 @@ const downloadFile = () => {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
+  const prefix = diagramInfo.value.isUdfb ? 'udfb' : 'fbd'
   const instValue = diagramInfo.value.inst || 'data'
   const nameValue = diagramInfo.value.name ? `-${diagramInfo.value.name}` : ''
-  a.download = `fbd-${instValue}${nameValue}.json`
+  const baseFileName = `${prefix}-${instValue}${nameValue}`
+  a.download = `${baseFileName}.json`
   a.click()
   URL.revokeObjectURL(url)
 
@@ -1644,7 +1646,7 @@ const downloadFile = () => {
   const txtUrl = URL.createObjectURL(txtBlob)
   const txtLink = document.createElement('a')
   txtLink.href = txtUrl
-  txtLink.download = `fbd-${instValue}${nameValue}.txt`
+  txtLink.download = `${baseFileName}.txt`
   txtLink.click()
   URL.revokeObjectURL(txtUrl)
 
@@ -1654,7 +1656,7 @@ const downloadFile = () => {
   const encUrl = URL.createObjectURL(encBlob)
   const encLink = document.createElement('a')
   encLink.href = encUrl
-  encLink.download = `fbd-${instValue}${nameValue}.enc`
+  encLink.download = `${baseFileName}.enc`
   encLink.click()
   URL.revokeObjectURL(encUrl)
 }
