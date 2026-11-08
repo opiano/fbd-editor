@@ -297,7 +297,7 @@
 </template>
 
 <script setup>
-import { ref, computed, markRaw, onMounted, onUnmounted, watch, provide } from 'vue'
+import { ref, computed, markRaw, onMounted, onUnmounted, watch, provide, nextTick } from 'vue'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
@@ -555,8 +555,9 @@ const confirmUdfb = () => {
   showUdfbModal.value = false
 }
 
-onNodesChange(() => { isVerified.value = false })
-onEdgesChange(() => { isVerified.value = false })
+let isInternalUpdate = false
+onNodesChange(() => { if (!isInternalUpdate) isVerified.value = false })
+onEdgesChange(() => { if (!isInternalUpdate) isVerified.value = false })
 
 let nodeCounter = 0 // 노드의 생성 순서를 저장할 카운터 변수
 
@@ -1134,9 +1135,62 @@ const addNode = (template) => {
   })
 }
 
+// 모든 블록의 x, y 좌표를 (0, 0) 기준으로 0 이상이 되도록 평행 이동 정규화
+const normalizeNodePositions = () => {
+  const fbdNodes = elements.value.filter(el => el.type === 'fbd' && el.position)
+  if (fbdNodes.length === 0) return
+
+  let minX = Infinity
+  let minY = Infinity
+  fbdNodes.forEach(node => {
+    const x = Number(node.position.x) || 0
+    const y = Number(node.position.y) || 0
+    if (x < minX) minX = x
+    if (y < minY) minY = y
+  })
+
+  const offsetX = minX < 0 ? -minX : 0
+  const offsetY = minY < 0 ? -minY : 0
+
+  isInternalUpdate = true
+  elements.value.forEach(el => {
+    if (el.type === 'fbd' && el.position) {
+      el.position = {
+        x: Math.max(0, Math.round((Number(el.position.x) || 0) + offsetX)),
+        y: Math.max(0, Math.round((Number(el.position.y) || 0) + offsetY))
+      }
+    }
+  })
+  nextTick(() => {
+    isInternalUpdate = false
+  })
+}
+
 const getProcessedData = () => {
+  normalizeNodePositions()
   const data = toObject()
   let hasChanges = false
+
+  if (data.nodes && data.nodes.length > 0) {
+    let minX = Infinity
+    let minY = Infinity
+    data.nodes.forEach(node => {
+      const x = Number(node.position?.x) || 0
+      const y = Number(node.position?.y) || 0
+      if (x < minX) minX = x
+      if (y < minY) minY = y
+    })
+    const offsetX = minX < 0 ? -minX : 0
+    const offsetY = minY < 0 ? -minY : 0
+
+    data.nodes = data.nodes.map(node => ({
+      ...node,
+      position: {
+        x: Math.max(0, Math.round((Number(node.position?.x) || 0) + offsetX)),
+        y: Math.max(0, Math.round((Number(node.position?.y) || 0) + offsetY))
+      }
+    }))
+  }
 
   data.edges = data.edges.map(edge => {
     if (isNaN(Number(edge.id))) {
@@ -1155,12 +1209,16 @@ const getProcessedData = () => {
   })
 
   if (hasChanges) {
+    isInternalUpdate = true
     elements.value = elements.value.map(el => {
       if (el.source && el.target) {
         const edgeData = data.edges.find(e => e.originalId === el.id || e.id === el.id)
         if (edgeData) return { ...el, originalId: edgeData.originalId, id: edgeData.id, label: edgeData.label, data: edgeData.data }
       }
       return el
+    })
+    nextTick(() => {
+      isInternalUpdate = false
     })
   }
 
@@ -1170,6 +1228,7 @@ const getProcessedData = () => {
 
 // FBD Validation
 const verifyFBD = () => {
+  normalizeNodePositions()
   const data = toObject()
   const errors = []
 
@@ -1471,7 +1530,9 @@ const generateMetaInfoText = () => {
         }
       }
 
-      outputLines.push(`${id},${nodeType}=${nodeContent}`)
+      const posX = Math.max(0, Math.round(Number(node.position?.x) || 0))
+      const posY = Math.max(0, Math.round(Number(node.position?.y) || 0))
+      outputLines.push(`${id},${nodeType}="${posX},${posY}",${nodeContent}`)
     })
   }
 
